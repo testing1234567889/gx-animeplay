@@ -9,38 +9,142 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AnimeAnimeIdRouteImport } from './routes/anime.$animeId'
+import { Route as AdminEpisodesRouteImport } from './routes/admin.episodes'
+import { Route as AdminAnimesRouteImport } from './routes/admin.animes'
+import { Route as WatchAnimeIdEpisodeIdRouteImport } from './routes/watch.$animeId.$episodeId'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AnimeAnimeIdRoute = AnimeAnimeIdRouteImport.update({
+  id: '/anime/$animeId',
+  path: '/anime/$animeId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminEpisodesRoute = AdminEpisodesRouteImport.update({
+  id: '/episodes',
+  path: '/episodes',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAnimesRoute = AdminAnimesRouteImport.update({
+  id: '/animes',
+  path: '/animes',
+  getParentRoute: () => AdminRoute,
+} as any)
+const WatchAnimeIdEpisodeIdRoute = WatchAnimeIdEpisodeIdRouteImport.update({
+  id: '/watch/$animeId/$episodeId',
+  path: '/watch/$animeId/$episodeId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/login': typeof LoginRoute
+  '/admin/animes': typeof AdminAnimesRoute
+  '/admin/episodes': typeof AdminEpisodesRoute
+  '/anime/$animeId': typeof AnimeAnimeIdRoute
+  '/admin/': typeof AdminIndexRoute
+  '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/admin/animes': typeof AdminAnimesRoute
+  '/admin/episodes': typeof AdminEpisodesRoute
+  '/anime/$animeId': typeof AnimeAnimeIdRoute
+  '/admin': typeof AdminIndexRoute
+  '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/login': typeof LoginRoute
+  '/admin/animes': typeof AdminAnimesRoute
+  '/admin/episodes': typeof AdminEpisodesRoute
+  '/anime/$animeId': typeof AnimeAnimeIdRoute
+  '/admin/': typeof AdminIndexRoute
+  '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/login'
+    | '/admin/animes'
+    | '/admin/episodes'
+    | '/anime/$animeId'
+    | '/admin/'
+    | '/watch/$animeId/$episodeId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/login'
+    | '/admin/animes'
+    | '/admin/episodes'
+    | '/anime/$animeId'
+    | '/admin'
+    | '/watch/$animeId/$episodeId'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/login'
+    | '/admin/animes'
+    | '/admin/episodes'
+    | '/anime/$animeId'
+    | '/admin/'
+    | '/watch/$animeId/$episodeId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  AnimeAnimeIdRoute: typeof AnimeAnimeIdRoute
+  WatchAnimeIdEpisodeIdRoute: typeof WatchAnimeIdEpisodeIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +152,65 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/anime/$animeId': {
+      id: '/anime/$animeId'
+      path: '/anime/$animeId'
+      fullPath: '/anime/$animeId'
+      preLoaderRoute: typeof AnimeAnimeIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/episodes': {
+      id: '/admin/episodes'
+      path: '/episodes'
+      fullPath: '/admin/episodes'
+      preLoaderRoute: typeof AdminEpisodesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/animes': {
+      id: '/admin/animes'
+      path: '/animes'
+      fullPath: '/admin/animes'
+      preLoaderRoute: typeof AdminAnimesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/watch/$animeId/$episodeId': {
+      id: '/watch/$animeId/$episodeId'
+      path: '/watch/$animeId/$episodeId'
+      fullPath: '/watch/$animeId/$episodeId'
+      preLoaderRoute: typeof WatchAnimeIdEpisodeIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface AdminRouteChildren {
+  AdminAnimesRoute: typeof AdminAnimesRoute
+  AdminEpisodesRoute: typeof AdminEpisodesRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAnimesRoute: AdminAnimesRoute,
+  AdminEpisodesRoute: AdminEpisodesRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
+  LoginRoute: LoginRoute,
+  AnimeAnimeIdRoute: AnimeAnimeIdRoute,
+  WatchAnimeIdEpisodeIdRoute: WatchAnimeIdEpisodeIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
