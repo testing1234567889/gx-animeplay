@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AnimeAnimeIdRouteImport } from './routes/anime.$animeId'
+import { Route as AdminAnimesRouteImport } from './routes/admin.animes'
 import { Route as WatchAnimeIdEpisodeIdRouteImport } from './routes/watch.$animeId.$episodeId'
 
 const LoginRoute = LoginRouteImport.update({
@@ -41,6 +42,11 @@ const AnimeAnimeIdRoute = AnimeAnimeIdRouteImport.update({
   path: '/anime/$animeId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminAnimesRoute = AdminAnimesRouteImport.update({
+  id: '/animes',
+  path: '/animes',
+  getParentRoute: () => AdminRoute,
+} as any)
 const WatchAnimeIdEpisodeIdRoute = WatchAnimeIdEpisodeIdRouteImport.update({
   id: '/watch/$animeId/$episodeId',
   path: '/watch/$animeId/$episodeId',
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
+  '/admin/animes': typeof AdminAnimesRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
   '/admin/': typeof AdminIndexRoute
   '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/admin/animes': typeof AdminAnimesRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
   '/admin': typeof AdminIndexRoute
   '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
+  '/admin/animes': typeof AdminAnimesRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
   '/admin/': typeof AdminIndexRoute
   '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
@@ -77,6 +86,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/login'
+    | '/admin/animes'
     | '/anime/$animeId'
     | '/admin/'
     | '/watch/$animeId/$episodeId'
@@ -84,6 +94,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/admin/animes'
     | '/anime/$animeId'
     | '/admin'
     | '/watch/$animeId/$episodeId'
@@ -92,6 +103,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/login'
+    | '/admin/animes'
     | '/anime/$animeId'
     | '/admin/'
     | '/watch/$animeId/$episodeId'
@@ -142,6 +154,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnimeAnimeIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/animes': {
+      id: '/admin/animes'
+      path: '/animes'
+      fullPath: '/admin/animes'
+      preLoaderRoute: typeof AdminAnimesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/watch/$animeId/$episodeId': {
       id: '/watch/$animeId/$episodeId'
       path: '/watch/$animeId/$episodeId'
@@ -153,10 +172,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminAnimesRoute: typeof AdminAnimesRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAnimesRoute: AdminAnimesRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
