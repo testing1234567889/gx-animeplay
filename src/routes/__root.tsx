@@ -4,13 +4,16 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useLocation,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
-import { AuthProvider, useAuth } from "../lib/auth-context";
+import { AuthProvider } from "../lib/auth-context";
 import { Toaster } from "sonner";
+import { TopNav } from "../components/TopNav";
+import { BottomNav } from "../components/BottomNav";
 
 function NotFoundComponent() {
   return (
@@ -100,52 +103,18 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function TopNav() {
-  const { user, logout } = useAuth();
-  return (
-    <header className="sticky top-0 z-40 glass">
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-md bg-primary" />
-          <span className="text-lg font-bold tracking-tight">AnimePlay</span>
-        </Link>
-        <nav className="flex items-center gap-1 text-sm">
-          <Link
-            to="/"
-            activeOptions={{ exact: true }}
-            className="rounded-md px-3 py-2 text-muted-foreground hover:bg-white/5 hover:text-foreground"
-            activeProps={{ className: "rounded-md px-3 py-2 text-foreground bg-white/5" }}
-          >
-            Home
-          </Link>
-          <Link
-            to="/admin"
-            className="rounded-md px-3 py-2 text-muted-foreground hover:bg-white/5 hover:text-foreground"
-            activeProps={{ className: "rounded-md px-3 py-2 text-foreground bg-white/5" }}
-          >
-            Admin
-          </Link>
-          {user ? (
-            <button
-              onClick={() => logout()}
-              className="ml-1 rounded-md px-3 py-2 text-muted-foreground hover:bg-white/5 hover:text-foreground"
-            >
-              Logout
-            </button>
-          ) : null}
-        </nav>
-      </div>
-    </header>
-  );
-}
-
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const { pathname } = useLocation();
+  const hideTop = pathname.startsWith("/admin") || pathname.startsWith("/login");
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TopNav />
-        <Outlet />
+        {!hideTop && <TopNav />}
+        <div key={pathname} className="animate-fade-in">
+          <Outlet />
+        </div>
+        <BottomNav />
         <Toaster theme="dark" position="top-center" richColors />
       </AuthProvider>
     </QueryClientProvider>
