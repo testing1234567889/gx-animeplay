@@ -47,7 +47,7 @@ function AnimeDetail() {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 pb-20 pt-6">
+    <main className="mx-auto max-w-7xl px-4 pb-32 pt-6">
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}

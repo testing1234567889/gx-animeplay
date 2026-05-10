@@ -9,7 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ScheduleRouteImport } from './routes/schedule'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as BookmarkRouteImport } from './routes/bookmark'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -18,9 +21,24 @@ import { Route as AdminEpisodesRouteImport } from './routes/admin.episodes'
 import { Route as AdminAnimesRouteImport } from './routes/admin.animes'
 import { Route as WatchAnimeIdEpisodeIdRouteImport } from './routes/watch.$animeId.$episodeId'
 
+const ScheduleRoute = ScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookmarkRoute = BookmarkRouteImport.update({
+  id: '/bookmark',
+  path: '/bookmark',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -62,7 +80,10 @@ const WatchAnimeIdEpisodeIdRoute = WatchAnimeIdEpisodeIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/bookmark': typeof BookmarkRoute
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
+  '/schedule': typeof ScheduleRoute
   '/admin/animes': typeof AdminAnimesRoute
   '/admin/episodes': typeof AdminEpisodesRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
@@ -71,7 +92,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/bookmark': typeof BookmarkRoute
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
+  '/schedule': typeof ScheduleRoute
   '/admin/animes': typeof AdminAnimesRoute
   '/admin/episodes': typeof AdminEpisodesRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
@@ -82,7 +106,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/bookmark': typeof BookmarkRoute
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
+  '/schedule': typeof ScheduleRoute
   '/admin/animes': typeof AdminAnimesRoute
   '/admin/episodes': typeof AdminEpisodesRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
@@ -94,7 +121,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/bookmark'
     | '/login'
+    | '/profile'
+    | '/schedule'
     | '/admin/animes'
     | '/admin/episodes'
     | '/anime/$animeId'
@@ -103,7 +133,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/bookmark'
     | '/login'
+    | '/profile'
+    | '/schedule'
     | '/admin/animes'
     | '/admin/episodes'
     | '/anime/$animeId'
@@ -113,7 +146,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/bookmark'
     | '/login'
+    | '/profile'
+    | '/schedule'
     | '/admin/animes'
     | '/admin/episodes'
     | '/anime/$animeId'
@@ -124,18 +160,42 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  BookmarkRoute: typeof BookmarkRoute
   LoginRoute: typeof LoginRoute
+  ProfileRoute: typeof ProfileRoute
+  ScheduleRoute: typeof ScheduleRoute
   AnimeAnimeIdRoute: typeof AnimeAnimeIdRoute
   WatchAnimeIdEpisodeIdRoute: typeof WatchAnimeIdEpisodeIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/schedule': {
+      id: '/schedule'
+      path: '/schedule'
+      fullPath: '/schedule'
+      preLoaderRoute: typeof ScheduleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bookmark': {
+      id: '/bookmark'
+      path: '/bookmark'
+      fullPath: '/bookmark'
+      preLoaderRoute: typeof BookmarkRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -207,7 +267,10 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  BookmarkRoute: BookmarkRoute,
   LoginRoute: LoginRoute,
+  ProfileRoute: ProfileRoute,
+  ScheduleRoute: ScheduleRoute,
   AnimeAnimeIdRoute: AnimeAnimeIdRoute,
   WatchAnimeIdEpisodeIdRoute: WatchAnimeIdEpisodeIdRoute,
 }

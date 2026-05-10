@@ -53,7 +53,7 @@ function WatchPage() {
   }, [current, server]);
 
   return (
-    <main className="mx-auto max-w-6xl px-4 pb-24 pt-6">
+    <main className="mx-auto max-w-6xl px-4 pb-32 pt-6">
       {/* Breadcrumb */}
       <div className="mb-3 text-sm text-muted-foreground">
         <Link to="/" className="hover:text-foreground">Home</Link>
@@ -148,36 +148,65 @@ function WatchPage() {
       <section className="mt-8">
         <h2 className="mb-3 text-lg font-semibold">Episodes</h2>
         {episodes === null ? (
-          <div className="grid grid-cols-5 gap-2 sm:grid-cols-8 md:grid-cols-10">
-            {Array.from({ length: 20 }).map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full" />
+          <div className="space-y-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-16 w-full" />
             ))}
           </div>
+        ) : episodes.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
+            No episodes available yet.
+          </div>
         ) : (
-          <div className="grid grid-cols-5 gap-2 sm:grid-cols-8 md:grid-cols-10">
+          <ul className="space-y-2">
             {episodes.map((ep) => {
               const active = ep.id === episodeId;
+              const epTitle = ep.title
+                ? `${anime?.title ?? "Episode"} — Episode ${ep.title}`
+                : `Episode ${ep.number}`;
               return (
-                <button
-                  key={ep.id}
-                  onClick={() =>
-                    navigate({
-                      to: "/watch/$animeId/$episodeId",
-                      params: { animeId, episodeId: ep.id },
-                    })
-                  }
-                  className={
-                    "h-12 rounded-lg text-sm font-medium ring-1 transition " +
-                    (active
-                      ? "bg-primary text-primary-foreground ring-primary"
-                      : "bg-card text-foreground ring-white/5 hover:bg-white/10")
-                  }
-                >
-                  {ep.number}
-                </button>
+                <li key={ep.id}>
+                  <button
+                    onClick={() =>
+                      navigate({
+                        to: "/watch/$animeId/$episodeId",
+                        params: { animeId, episodeId: ep.id },
+                      })
+                    }
+                    className={
+                      "flex w-full items-center gap-3 rounded-xl p-3 text-left transition ring-1 " +
+                      (active
+                        ? "bg-primary/15 ring-primary/50"
+                        : "bg-card ring-white/5 hover:ring-primary/30")
+                    }
+                  >
+                    <div
+                      className={
+                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-sm font-bold " +
+                        (active
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-primary/15 text-primary")
+                      }
+                    >
+                      ▶
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold text-foreground">
+                        Episode {ep.number}
+                        {ep.title ? <span className="text-muted-foreground"> — {ep.title}</span> : null}
+                      </div>
+                      <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                        {ep.dailymotion_id ? "DM" : ""}
+                        {ep.dailymotion_id && ep.okru_id ? " · " : ""}
+                        {ep.okru_id ? "OK" : ""}
+                        {!ep.dailymotion_id && !ep.okru_id ? "No source" : " available"}
+                      </div>
+                    </div>
+                  </button>
+                </li>
               );
             })}
-          </div>
+          </ul>
         )}
       </section>
     </main>
