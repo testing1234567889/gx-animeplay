@@ -53,7 +53,7 @@ function WatchPage() {
   }, [current, server]);
 
   return (
-    <main className="mx-auto max-w-6xl px-4 pb-24 pt-6">
+    <main className="mx-auto max-w-6xl px-4 pb-32 pt-6">
       {/* Breadcrumb */}
       <div className="mb-3 text-sm text-muted-foreground">
         <Link to="/" className="hover:text-foreground">Home</Link>
