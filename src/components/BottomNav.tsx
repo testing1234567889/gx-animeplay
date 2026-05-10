@@ -21,7 +21,8 @@ export function BottomNav() {
       <div className="pointer-events-auto mx-3 mb-3 md:mb-5 w-full max-w-md rounded-full glass shadow-[0_8px_30px_rgba(0,0,0,0.45)] ring-1 ring-white/10">
         <ul className="grid grid-cols-4">
           {items.map((it) => {
-            const active = it.exact ? pathname === it.to : pathname.startsWith(it.to);
+            const exact = "exact" in it && it.exact;
+            const active = exact ? pathname === it.to : pathname.startsWith(it.to);
             const Icon = it.icon;
             return (
               <li key={it.to} className="flex">
