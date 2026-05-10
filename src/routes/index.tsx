@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import { subscribeAnimes } from "../lib/anime-api";
 import type { Anime } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
@@ -17,30 +16,27 @@ export const Route = createFileRoute("/")({
 
 function PosterCard({ a }: { a: Anime }) {
   return (
-    <motion.div
-      whileHover={{ y: -4, scale: 1.03 }}
-      whileTap={{ scale: 0.97 }}
-      transition={{ type: "spring", stiffness: 300, damping: 22 }}
-      className="group"
+    <Link
+      to="/anime/$animeId"
+      params={{ animeId: a.id }}
+      className="group block transition-transform duration-200 active:scale-95 hover:scale-103"
     >
-      <Link to="/anime/$animeId" params={{ animeId: a.id }} className="block">
-        <div className="aspect-[2/3] overflow-hidden rounded-xl bg-card ring-1 ring-white/5">
-          {a.poster_url ? (
-            <img
-              src={a.poster_url}
-              alt={a.title}
-              loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
-              No poster
-            </div>
-          )}
-        </div>
-        <div className="mt-2 line-clamp-2 text-sm font-medium text-foreground">{a.title}</div>
-      </Link>
-    </motion.div>
+      <div className="aspect-[2/3] overflow-hidden rounded-xl bg-card ring-1 ring-white/5 transition group-hover:ring-primary/40">
+        {a.poster_url ? (
+          <img
+            src={a.poster_url}
+            alt={a.title}
+            loading="lazy"
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+            No poster
+          </div>
+        )}
+      </div>
+      <div className="mt-2 line-clamp-2 text-sm font-medium text-foreground">{a.title}</div>
+    </Link>
   );
 }
 
@@ -58,14 +54,9 @@ function Home() {
   const featured = animes?.[0];
 
   return (
-    <main className="mx-auto max-w-7xl px-4 pb-20 pt-6">
-      {/* Hero */}
+    <main className="mx-auto max-w-7xl px-4 pb-32 pt-6">
       {featured ? (
-        <motion.section
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative mb-8 overflow-hidden rounded-2xl ring-1 ring-white/10"
-        >
+        <section className="relative mb-8 overflow-hidden rounded-2xl ring-1 ring-white/10 animate-fade-in">
           <div className="aspect-[16/9] md:aspect-[21/9] w-full">
             {featured.poster_url ? (
               <img src={featured.poster_url} alt={featured.title} className="h-full w-full object-cover" />
@@ -87,7 +78,7 @@ function Home() {
               Watch Now
             </Link>
           </div>
-        </motion.section>
+        </section>
       ) : (
         <Skeleton className="mb-8 aspect-[16/9] md:aspect-[21/9] w-full" />
       )}
@@ -106,11 +97,10 @@ function Home() {
           </div>
         ) : animes.length === 0 ? (
           <div className="rounded-xl border border-dashed border-white/10 p-10 text-center text-sm text-muted-foreground">
-            No anime yet. Add some from the <Link to="/admin" className="text-primary underline">Admin</Link> dashboard.
+            No anime yet. Open <span className="font-mono text-primary">/admin</span> to add some.
           </div>
         ) : (
           <>
-            {/* Mobile: horizontal rail */}
             <div className="md:hidden -mx-4 overflow-x-auto no-scrollbar px-4">
               <div className="flex gap-3 snap-x snap-mandatory">
                 {animes.map((a) => (
@@ -120,7 +110,6 @@ function Home() {
                 ))}
               </div>
             </div>
-            {/* Desktop grid */}
             <div className="hidden md:grid grid-cols-3 gap-4 md:grid-cols-4 lg:grid-cols-6">
               {animes.map((a) => (
                 <PosterCard key={a.id} a={a} />
