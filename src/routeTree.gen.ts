@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AnimeAnimeIdRouteImport } from './routes/anime.$animeId'
 import { Route as WatchAnimeIdEpisodeIdRouteImport } from './routes/watch.$animeId.$episodeId'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -31,36 +37,52 @@ const WatchAnimeIdEpisodeIdRoute = WatchAnimeIdEpisodeIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
   '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
   '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
   '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/anime/$animeId' | '/watch/$animeId/$episodeId'
+  fullPaths: '/' | '/login' | '/anime/$animeId' | '/watch/$animeId/$episodeId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/anime/$animeId' | '/watch/$animeId/$episodeId'
-  id: '__root__' | '/' | '/anime/$animeId' | '/watch/$animeId/$episodeId'
+  to: '/' | '/login' | '/anime/$animeId' | '/watch/$animeId/$episodeId'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/anime/$animeId'
+    | '/watch/$animeId/$episodeId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LoginRoute: typeof LoginRoute
   AnimeAnimeIdRoute: typeof AnimeAnimeIdRoute
   WatchAnimeIdEpisodeIdRoute: typeof WatchAnimeIdEpisodeIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -87,6 +109,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LoginRoute: LoginRoute,
   AnimeAnimeIdRoute: AnimeAnimeIdRoute,
   WatchAnimeIdEpisodeIdRoute: WatchAnimeIdEpisodeIdRoute,
 }
