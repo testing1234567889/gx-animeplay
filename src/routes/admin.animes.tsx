@@ -325,8 +325,22 @@ function AnimesAdmin() {
 
 /* ------------ Episodes Manager (nested) ------------ */
 
-type EpForm = { number: string; title: string; dailymotion_id: string; okru_id: string; vip_only: boolean; release_time: string };
-const emptyEp: EpForm = { number: "", title: "", dailymotion_id: "", okru_id: "", vip_only: false, release_time: "" };
+type EpForm = {
+  number: string;
+  title: string;
+  server1_data: string; server1_name: string;
+  server2_data: string; server2_name: string;
+  server3_data: string; server3_name: string;
+  vip_only: boolean;
+  release_time: string;
+};
+const emptyEp: EpForm = {
+  number: "", title: "",
+  server1_data: "", server1_name: "",
+  server2_data: "", server2_name: "",
+  server3_data: "", server3_name: "",
+  vip_only: false, release_time: "",
+};
 
 function toLocalInput(ms?: number) {
   if (!ms) return "";
