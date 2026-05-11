@@ -76,6 +76,20 @@ export type Comment = {
   created_at: number;
   pinned?: boolean;
   parent_id?: string | null;
+  isSpoiler?: boolean;
+  reports?: Record<string, boolean>; // uid -> true
+};
+
+export type ReportedComment = {
+  id: string;
+  episode_id: string;
+  comment_id: string;
+  reporter_uid: string;
+  reason: string;
+  custom_text?: string;
+  text_snippet: string;
+  comment_uid: string;
+  created_at: number;
 };
 
 export type Announcement = {
