@@ -184,8 +184,9 @@ function ProfilePage() {
           uid={user.uid}
           initialName={user.displayName ?? ""}
           initialBio={bio}
+          initialAvatar={user.photoURL ?? ""}
           onClose={() => setEditOpen(false)}
-          onSaved={(n, b) => setBio(b)}
+          onSaved={(_n, b) => setBio(b)}
         />
       )}
     </main>
@@ -193,16 +194,18 @@ function ProfilePage() {
 }
 
 function EditProfileModal({
-  uid, initialName, initialBio, onClose, onSaved,
+  uid, initialName, initialBio, initialAvatar, onClose, onSaved,
 }: {
   uid: string;
   initialName: string;
   initialBio: string;
+  initialAvatar: string;
   onClose: () => void;
   onSaved: (name: string, bio: string) => void;
 }) {
   const [name, setName] = useState(initialName);
   const [bio, setBioVal] = useState(initialBio);
+  const [avatar, setAvatar] = useState(initialAvatar);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
