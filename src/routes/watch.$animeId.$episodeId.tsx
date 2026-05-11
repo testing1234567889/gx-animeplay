@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Crown, Lock } from "lucide-react";
 import { getAnime, subscribeEpisodes } from "../lib/anime-api";
 import type { Anime, Episode } from "../lib/types";
@@ -24,6 +24,7 @@ function WatchPage() {
   const [episodes, setEpisodes] = useState<Episode[] | null>(null);
   const [server, setServer] = useState<ServerKey>("dm");
   const [now, setNow] = useState(Date.now());
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     getAnime(animeId).then(setAnime);
@@ -31,6 +32,16 @@ function WatchPage() {
   }, [animeId]);
 
   const current = useMemo(() => episodes?.find((e) => e.id === episodeId) ?? null, [episodes, episodeId]);
+  const videoId = current?.dailymotion_id ?? "";
+
+  useEffect(() => {
+    if (iframeRef.current) {
+      iframeRef.current.setAttribute("allowfullscreen", "true");
+      iframeRef.current.setAttribute("webkitallowfullscreen", "true");
+      iframeRef.current.setAttribute("mozallowfullscreen", "true");
+      iframeRef.current.setAttribute("allow", "autoplay; fullscreen; picture-in-picture; web-share");
+    }
+  }, [videoId]);
 
   useEffect(() => {
     if (!current) return;
@@ -114,13 +125,24 @@ function WatchPage() {
                 <Crown className="h-4 w-4" /> Upgrade to VIP
               </Link>
             </div>
+          ) : server === "dm" && videoId ? (
+            <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+              <iframe
+                ref={iframeRef}
+                src={`https://www.dailymotion.com/embed/video/${videoId}?autoplay=0`}
+                className="absolute top-0 left-0 w-full h-full"
+                frameBorder="0"
+                title="Dailymotion Player"
+              ></iframe>
+            </div>
           ) : embedUrl ? (
-            <div
-              key={embedUrl}
-              className="absolute inset-0"
-              dangerouslySetInnerHTML={{
-                __html: `<iframe src="${embedUrl}" width="100%" height="100%" style="position:absolute;top:0;left:0;border:0;" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>`,
-              }}
+            <iframe
+              src={embedUrl}
+              className="absolute top-0 left-0 h-full w-full border-0"
+              frameBorder="0"
+              allow="fullscreen; picture-in-picture"
+              allowFullScreen={true}
+              title="Video Player"
             />
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
