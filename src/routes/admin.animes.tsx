@@ -205,7 +205,7 @@ function AnimesAdmin() {
                 <Pencil className="h-4 w-4" />
               </button>
               <button
-                onClick={() => onDelete(a)}
+                onClick={() => setConfirmAnime(a)}
                 className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/20 hover:text-destructive"
                 aria-label="Delete"
               >
