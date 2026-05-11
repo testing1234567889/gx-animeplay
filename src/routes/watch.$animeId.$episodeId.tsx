@@ -49,6 +49,8 @@ function WatchPage() {
       if (document.exitFullscreen) document.exitFullscreen();
     }
   };
+
+  useEffect(() => {
     getAnime(animeId).then(setAnime);
     return subscribeEpisodes(animeId, setEpisodes);
   }, [animeId]);
