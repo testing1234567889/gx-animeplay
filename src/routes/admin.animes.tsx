@@ -27,6 +27,7 @@ type AnimeForm = {
   type: string;
   status: string;
   latest_ep: string;
+  schedule_day: string;
   isTrending: boolean;
   isLatest: boolean;
   isMovie: boolean;
@@ -41,6 +42,7 @@ const emptyAnime: AnimeForm = {
   type: "Donghua",
   status: "Ongoing",
   latest_ep: "",
+  schedule_day: "",
   isTrending: false,
   isLatest: false,
   isMovie: false,
