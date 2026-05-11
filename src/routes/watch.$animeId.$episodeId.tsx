@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Crown, Lock, Maximize } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Crown, Lock } from "lucide-react";
 import { getAnime, subscribeEpisodes } from "../lib/anime-api";
 import type { Anime, Episode } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/watch/$animeId/$episodeId")({
   head: () => ({ meta: [{ title: "Watch — AnimePlay" }] }),
 });
 
-type ServerKey = "dm" | "okru";
+type ServerKey = "s1" | "s2" | "s3";
 const VIP_DELAY_MS = 30 * 60 * 1000;
 
 function WatchPage() {
@@ -22,57 +22,8 @@ function WatchPage() {
   const { user, profile } = useAuth();
   const [anime, setAnime] = useState<Anime | null | undefined>(undefined);
   const [episodes, setEpisodes] = useState<Episode[] | null>(null);
-  const [server, setServer] = useState<ServerKey>("dm");
+  const [server, setServer] = useState<ServerKey>("s1");
   const [now, setNow] = useState(Date.now());
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const playerContainerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const onFullscreenChange = () => {
-      const isFull = !!document.fullscreenElement;
-      const elem = playerContainerRef.current;
-      if (elem) {
-        if (isFull) {
-          elem.classList.remove("aspect-video", "rounded-lg");
-          elem.classList.add("h-screen", "w-screen");
-        } else {
-          elem.classList.add("aspect-video", "rounded-lg");
-          elem.classList.remove("h-screen", "w-screen");
-          const orientation = (window.screen as any)?.orientation;
-          if (orientation?.unlock) {
-            try {
-              const unlockResult = orientation.unlock();
-              if (unlockResult?.catch) unlockResult.catch(() => {});
-            } catch {}
-          }
-        }
-      }
-    };
-    document.addEventListener("fullscreenchange", onFullscreenChange);
-    return () => {
-      document.removeEventListener("fullscreenchange", onFullscreenChange);
-    };
-  }, []);
-
-  const toggleFullscreen = async () => {
-    const elem: any = playerContainerRef.current;
-    if (!elem) return;
-    if (!document.fullscreenElement) {
-      try {
-        if (elem.requestFullscreen) await elem.requestFullscreen();
-        else if (elem.webkitRequestFullscreen) await elem.webkitRequestFullscreen();
-        else if (elem.msRequestFullscreen) await elem.msRequestFullscreen();
-
-        if ((window.screen as any)?.orientation?.lock) {
-          await (window.screen as any).orientation.lock("landscape").catch(console.warn);
-        }
-      } catch (error) {
-        console.error("Fullscreen error:", error);
-      }
-    } else {
-      if (document.exitFullscreen) document.exitFullscreen();
-    }
-  };
 
   useEffect(() => {
     getAnime(animeId).then(setAnime);
@@ -80,22 +31,24 @@ function WatchPage() {
   }, [animeId]);
 
   const current = useMemo(() => episodes?.find((e) => e.id === episodeId) ?? null, [episodes, episodeId]);
-  const videoId = current?.dailymotion_id ?? "";
 
-  useEffect(() => {
-    if (iframeRef.current) {
-      iframeRef.current.setAttribute("allowfullscreen", "true");
-      iframeRef.current.setAttribute("webkitallowfullscreen", "true");
-      iframeRef.current.setAttribute("mozallowfullscreen", "true");
-      iframeRef.current.setAttribute("allow", "autoplay; fullscreen; picture-in-picture; web-share");
-    }
-  }, [videoId]);
+  // Back-compat: fall back to legacy fields if new ones are missing.
+  const s1Data = current?.server1_data || current?.dailymotion_id || "";
+  const s2Data = current?.server2_data || current?.okru_id || "";
+  const s3Data = current?.server3_data || "";
+  const s1Name = current?.server1_name?.trim() || "Server 1";
+  const s2Name = current?.server2_name?.trim() || "Server 2";
+  const s3Name = current?.server3_name?.trim() || "Server 3";
+
+  const availability: Record<ServerKey, string> = { s1: s1Data, s2: s2Data, s3: s3Data };
 
   useEffect(() => {
     if (!current) return;
-    if (server === "dm" && !current.dailymotion_id && current.okru_id) setServer("okru");
-    if (server === "okru" && !current.okru_id && current.dailymotion_id) setServer("dm");
-  }, [current, server]);
+    if (!availability[server]) {
+      const fallback = (["s1", "s2", "s3"] as ServerKey[]).find((k) => !!availability[k]);
+      if (fallback) setServer(fallback);
+    }
+  }, [current, server, availability]);
 
   useEffect(() => {
     if (anime?.title && current) document.title = `${anime.title} — Ep ${current.number} | AnimePlay`;
@@ -127,20 +80,61 @@ function WatchPage() {
     }).catch(() => {});
   }, [user, anime, current, animeId, episodeId, locked]);
 
-  const embedUrl = useMemo(() => {
-    if (!current || locked) return null;
-    if (server === "dm" && current.dailymotion_id)
-      return `https://www.dailymotion.com/embed/video/${current.dailymotion_id}?autoplay=0&fullscreen=1`;
-    if (server === "okru" && current.okru_id) return `https://ok.ru/videoembed/${current.okru_id}`;
-    return null;
-  }, [current, server, locked]);
-
   const fmt = (ms: number) => {
     const s = Math.ceil(ms / 1000);
     const m = Math.floor(s / 60);
     const sec = s % 60;
     return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
   };
+
+  const renderPlayer = () => {
+    if (!current) return null;
+    if (server === "s1" && s1Data)
+      return (
+        <iframe
+          src={`https://geo.dailymotion.com/player/xid0t.html?video=${s1Data}&autoplay=0`}
+          allow="autoplay; fullscreen; picture-in-picture; web-share"
+          allowFullScreen
+          className="w-full h-full absolute inset-0"
+          frameBorder="0"
+          title="Server 1"
+        />
+      );
+    if (server === "s2" && s2Data)
+      return (
+        <iframe
+          src={`https://ok.ru/videoembed/${s2Data}`}
+          allowFullScreen
+          className="w-full h-full absolute inset-0"
+          frameBorder="0"
+          title="Server 2"
+        />
+      );
+    if (server === "s3" && s3Data)
+      return (
+        <iframe
+          src={s3Data}
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowFullScreen
+          className="w-full h-full absolute inset-0"
+          frameBorder="0"
+          title="Server 3"
+        />
+      );
+    return (
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+        <div className="mb-2 text-3xl">📡</div>
+        <div className="text-lg font-semibold">Video Offline</div>
+        <p className="mt-1 text-sm text-muted-foreground">Try another server.</p>
+      </div>
+    );
+  };
+
+  const servers: { k: ServerKey; label: string; available: boolean }[] = [
+    { k: "s1", label: s1Name, available: !!s1Data },
+    { k: "s2", label: s2Name, available: !!s2Data },
+    { k: "s3", label: s3Name, available: !!s3Data },
+  ];
 
   return (
     <main className="mx-auto max-w-6xl px-4 pb-24 pt-6">
@@ -153,10 +147,7 @@ function WatchPage() {
         {current && (<><span className="mx-2">/</span><span className="text-foreground">Episode {current.number}</span></>)}
       </div>
 
-      <div
-        ref={playerContainerRef}
-        className="relative flex items-center justify-center bg-black w-full aspect-video rounded-lg overflow-hidden"
-      >
+      <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
         {!current ? (
           <Skeleton className="absolute inset-0 rounded-none" />
         ) : locked ? (
@@ -175,64 +166,26 @@ function WatchPage() {
               <Crown className="h-4 w-4" /> Upgrade to VIP
             </Link>
           </div>
-        ) : server === "dm" && videoId ? (
-          <iframe
-            ref={iframeRef}
-            src={`https://www.dailymotion.com/embed/video/${videoId}?autoplay=0&ui-logo=0`}
-            className="absolute inset-0 w-full h-full"
-            frameBorder="0"
-            allow="autoplay; fullscreen; picture-in-picture"
-            allowFullScreen
-            title="Dailymotion Player"
-          ></iframe>
-        ) : embedUrl ? (
-          <iframe
-            src={embedUrl}
-            className="absolute inset-0 h-full w-full border-0"
-            frameBorder="0"
-            allow="autoplay; fullscreen; picture-in-picture"
-            allowFullScreen={true}
-            title="Video Player"
-          />
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-            <div className="mb-2 text-3xl">📡</div>
-            <div className="text-lg font-semibold">Video Offline</div>
-            <p className="mt-1 text-sm text-muted-foreground">Try the other server.</p>
-          </div>
+          renderPlayer()
         )}
       </div>
 
       {current && !locked && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-2 text-xs uppercase tracking-wider text-muted-foreground">Server</span>
-            {([
-              { k: "dm" as const, label: "Server 1 (DM)", available: !!current.dailymotion_id },
-              { k: "okru" as const, label: "Server 2 (OK)", available: !!current.okru_id },
-            ]).map((s) => (
-              <button
-                key={s.k}
-                disabled={!s.available}
-                onClick={() => setServer(s.k)}
-                className={
-                  "rounded-xl px-4 py-2 text-sm font-medium transition glass " +
-                  (server === s.k ? "bg-primary/20 text-foreground ring-1 ring-primary" : "text-muted-foreground hover:text-foreground") +
-                  (!s.available ? " opacity-40 cursor-not-allowed" : "")
-                }
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-          <button
-            onClick={toggleFullscreen}
-            title="Full Screen"
-            aria-label="Full Screen"
-            className="p-2.5 rounded-lg bg-slate-800 hover:bg-cyan-900 border border-slate-700 text-cyan-400 transition-all"
-          >
-            <Maximize className="h-4 w-4" />
-          </button>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="mr-2 text-xs uppercase tracking-wider text-muted-foreground">Server</span>
+          {servers.filter((s) => s.available).map((s) => (
+            <button
+              key={s.k}
+              onClick={() => setServer(s.k)}
+              className={
+                "rounded-xl px-4 py-2 text-sm font-medium transition glass " +
+                (server === s.k ? "bg-primary/20 text-foreground ring-1 ring-primary" : "text-muted-foreground hover:text-foreground")
+              }
+            >
+              {s.label}
+            </button>
+          ))}
         </div>
       )}
 

@@ -22,6 +22,12 @@ export type Episode = {
   title?: string;
   dailymotion_id?: string;
   okru_id?: string;
+  server1_data?: string;
+  server1_name?: string;
+  server2_data?: string;
+  server2_name?: string;
+  server3_data?: string;
+  server3_name?: string;
   vip_only?: boolean;
   release_time?: number; // ms epoch when it became released
   created_at?: number;
@@ -31,6 +37,7 @@ export type UserProfile = {
   uid: string;
   email?: string | null;
   displayName?: string | null;
+  photoURL?: string | null;
   status?: "free" | "vip";
   vip_until?: number | null;
   banned?: boolean;

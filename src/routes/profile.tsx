@@ -2,9 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { Bookmark, Crown, History, HelpCircle, LogOut, Shield, ChevronRight, User as UserIcon, Pencil, X, Save } from "lucide-react";
 import { updateProfile } from "firebase/auth";
+import { ref, update } from "firebase/database";
 import { toast } from "sonner";
 import { useAuth } from "../lib/auth-context";
-import { auth } from "../lib/firebase";
+import { auth, db } from "../lib/firebase";
 import { subscribeHistory, type HistoryItem } from "../lib/history";
 import { getPublicBio, setPublicBio } from "../lib/settings";
 import { RoleBadges, rolesFromProfile } from "../components/RoleBadges";
@@ -62,8 +63,9 @@ function ProfilePage() {
                 className="absolute inset-0 h-full w-full object-cover"
                 onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
               />
-            ) : null}
-            <span className="relative">{initial}</span>
+            ) : (
+              <span className="relative">{initial}</span>
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
@@ -229,6 +231,7 @@ function EditProfileModal({
     setBusy(true);
     try {
       await updateProfile(auth.currentUser, { displayName: n, photoURL: a || null });
+      await update(ref(db, `users/${uid}`), { displayName: n, photoURL: a || null });
       await setPublicBio(uid, b);
       onSaved(n, b);
       toast.success("Profile updated");

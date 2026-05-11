@@ -109,12 +109,24 @@ export function Comments({ episodeId }: { episodeId: string }) {
       ) : (
         <ul className="space-y-2">
           {items.map((c) => {
-            const name = c.email?.split("@")[0] || "user";
-            const initial = name[0]?.toUpperCase() ?? "?";
+            const author = roleMap[c.uid];
+            const name = (author?.displayName?.trim()) || c.email?.split("@")[0] || "user";
+            const initial = (name[0] ?? "?").toUpperCase();
+            const photoURL = author?.photoURL || "";
             return (
               <li key={c.id} className="flex gap-3 rounded-xl bg-card p-3 ring-1 ring-white/5">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/20 text-sm font-bold text-primary">
-                  {initial}
+                <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/20 text-sm font-bold text-primary">
+                  {photoURL ? (
+                    <img
+                      src={photoURL}
+                      alt={name}
+                      referrerPolicy="no-referrer"
+                      className="absolute inset-0 h-full w-full object-cover"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                    />
+                  ) : (
+                    <span>{initial}</span>
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">

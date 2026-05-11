@@ -325,8 +325,22 @@ function AnimesAdmin() {
 
 /* ------------ Episodes Manager (nested) ------------ */
 
-type EpForm = { number: string; title: string; dailymotion_id: string; okru_id: string; vip_only: boolean; release_time: string };
-const emptyEp: EpForm = { number: "", title: "", dailymotion_id: "", okru_id: "", vip_only: false, release_time: "" };
+type EpForm = {
+  number: string;
+  title: string;
+  server1_data: string; server1_name: string;
+  server2_data: string; server2_name: string;
+  server3_data: string; server3_name: string;
+  vip_only: boolean;
+  release_time: string;
+};
+const emptyEp: EpForm = {
+  number: "", title: "",
+  server1_data: "", server1_name: "",
+  server2_data: "", server2_name: "",
+  server3_data: "", server3_name: "",
+  vip_only: false, release_time: "",
+};
 
 function toLocalInput(ms?: number) {
   if (!ms) return "";
@@ -361,8 +375,12 @@ function EpisodesManager({ anime }: { anime: Anime }) {
         anime_id: anime.id,
         number: num,
         title: form.title,
-        dailymotion_id: form.dailymotion_id,
-        okru_id: form.okru_id,
+        server1_data: form.server1_data,
+        server1_name: form.server1_name,
+        server2_data: form.server2_data,
+        server2_name: form.server2_name,
+        server3_data: form.server3_data,
+        server3_name: form.server3_name,
         vip_only: form.vip_only,
         release_time: release_ms,
       };
@@ -426,7 +444,7 @@ function EpisodesManager({ anime }: { anime: Anime }) {
                     {ep.title || `Episode ${ep.number}`}
                   </div>
                   <div className="truncate text-[11px] text-muted-foreground">
-                    DM: {ep.dailymotion_id || "—"} · OK: {ep.okru_id || "—"}
+                    S1: {ep.server1_data || ep.dailymotion_id || "—"} · S2: {ep.server2_data || ep.okru_id || "—"} · S3: {ep.server3_data || "—"}
                   </div>
                 </div>
                 <button
@@ -435,8 +453,12 @@ function EpisodesManager({ anime }: { anime: Anime }) {
                     setForm({
                       number: String(ep.number ?? ""),
                       title: ep.title ?? "",
-                      dailymotion_id: ep.dailymotion_id ?? "",
-                      okru_id: ep.okru_id ?? "",
+                      server1_data: ep.server1_data ?? ep.dailymotion_id ?? "",
+                      server1_name: ep.server1_name ?? "",
+                      server2_data: ep.server2_data ?? ep.okru_id ?? "",
+                      server2_name: ep.server2_name ?? "",
+                      server3_data: ep.server3_data ?? "",
+                      server3_name: ep.server3_name ?? "",
                       vip_only: !!ep.vip_only,
                       release_time: toLocalInput(ep.release_time),
                     });
@@ -494,22 +516,56 @@ function EpisodesManager({ anime }: { anime: Anime }) {
             />
           </Field>
         </div>
-        <Field label="Dailymotion ID">
-          <input
-            value={form.dailymotion_id}
-            onChange={(e) => setForm({ ...form, dailymotion_id: e.target.value })}
-            placeholder="x8abcde"
-            className="input"
-          />
-        </Field>
-        <Field label="OK.RU ID">
-          <input
-            value={form.okru_id}
-            onChange={(e) => setForm({ ...form, okru_id: e.target.value })}
-            placeholder="1234567890123"
-            className="input"
-          />
-        </Field>
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="Server 1 Data (DM Video ID)">
+            <input
+              value={form.server1_data}
+              onChange={(e) => setForm({ ...form, server1_data: e.target.value })}
+              placeholder="x8abcde"
+              className="input"
+            />
+          </Field>
+          <Field label="Server 1 Name">
+            <input
+              value={form.server1_name}
+              onChange={(e) => setForm({ ...form, server1_name: e.target.value })}
+              placeholder="Server 1"
+              className="input"
+            />
+          </Field>
+          <Field label="Server 2 Data (OK.ru ID)">
+            <input
+              value={form.server2_data}
+              onChange={(e) => setForm({ ...form, server2_data: e.target.value })}
+              placeholder="1234567890123"
+              className="input"
+            />
+          </Field>
+          <Field label="Server 2 Name">
+            <input
+              value={form.server2_name}
+              onChange={(e) => setForm({ ...form, server2_name: e.target.value })}
+              placeholder="Server 2"
+              className="input"
+            />
+          </Field>
+          <Field label="Server 3 Data (Embed URL)">
+            <input
+              value={form.server3_data}
+              onChange={(e) => setForm({ ...form, server3_data: e.target.value })}
+              placeholder="https://..."
+              className="input"
+            />
+          </Field>
+          <Field label="Server 3 Name">
+            <input
+              value={form.server3_name}
+              onChange={(e) => setForm({ ...form, server3_name: e.target.value })}
+              placeholder="Server 3"
+              className="input"
+            />
+          </Field>
+        </div>
         <Field label="Release Time (basis for VIP early-access timer)">
           <input
             type="datetime-local"
