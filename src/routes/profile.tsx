@@ -53,10 +53,19 @@ function ProfilePage() {
         <div className="pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/30 blur-3xl" />
         <div className="relative flex items-center gap-4">
           <div
-            className={"flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-bold ring-2 " + (vip ? "ring-yellow-400/60" : "ring-white/15")}
+            className={"relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full text-xl font-bold ring-2 " + (vip ? "ring-yellow-400/60" : "ring-white/15")}
             style={vip ? { background: "linear-gradient(135deg,#FDE68A,#F59E0B)", color: "#111" } : { background: "color-mix(in oklab,var(--primary) 25%, transparent)", color: "var(--primary)" }}
           >
-            {initial}
+            {user.photoURL ? (
+              <img
+                src={user.photoURL}
+                alt={displayName}
+                referrerPolicy="no-referrer"
+                className="absolute inset-0 h-full w-full object-cover"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+              />
+            ) : null}
+            <span className="relative">{initial}</span>
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
