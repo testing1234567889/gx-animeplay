@@ -15,6 +15,7 @@ export type Anime = {
   genres?: string[];
   globalRating?: number;
   ratingCount?: number;
+  userRatings?: Record<string, { uid: string; score: number }>;
   created_at?: number;
 };
 

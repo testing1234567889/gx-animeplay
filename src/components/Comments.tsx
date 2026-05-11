@@ -188,7 +188,27 @@ export function Comments({ episodeId, onSeek }: Props) {
 
     return (
       <li key={c.id}>
-        <div className={"flex gap-3 rounded-xl p-3 ring-1 " + (c.pinned ? "bg-primary/10 ring-primary/30" : "bg-card ring-white/5")}>
+        <div className={"relative flex gap-3 rounded-xl p-3 pr-10 ring-1 " + (c.pinned ? "bg-primary/10 ring-primary/30" : "bg-card ring-white/5")}>
+          {/* Flag (top-right). Hidden if user already reported. Available for every comment incl. own/admin/mod */}
+          {user && !reportedByMe && (
+            <button
+              onClick={() => setReportFor(c)}
+              aria-label="Report comment"
+              title="Report"
+              className="absolute top-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-amber-500/15 hover:text-amber-400 transition"
+            >
+              <Flag className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {user && reportedByMe && (
+            <span
+              aria-label="Already reported"
+              title="You already reported this"
+              className="absolute top-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full text-amber-400/60"
+            >
+              <Flag className="h-3.5 w-3.5 fill-current" />
+            </span>
+          )}
           <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/20 text-sm font-bold text-primary">
             {photoURL ? (
               <img
@@ -242,21 +262,6 @@ export function Comments({ episodeId, onSeek }: Props) {
                   className="inline-flex items-center gap-1 text-muted-foreground hover:text-primary"
                 >
                   <Pin className="h-3.5 w-3.5" /> {c.pinned ? "Unpin" : "Pin"}
-                </button>
-              )}
-              {user && user.uid !== c.uid && (
-                <button
-                  onClick={() => !reportedByMe && setReportFor(c)}
-                  disabled={reportedByMe}
-                  title={reportedByMe ? "You already reported this" : "Report"}
-                  className={
-                    "inline-flex items-center gap-1 " +
-                    (reportedByMe
-                      ? "text-muted-foreground/40 cursor-not-allowed"
-                      : "text-muted-foreground hover:text-amber-400")
-                  }
-                >
-                  <Flag className="h-3.5 w-3.5" /> {reportedByMe ? "Reported" : "Report"}
                 </button>
               )}
               {canDelete && (

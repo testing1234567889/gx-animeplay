@@ -14,32 +14,15 @@ export async function saveWatchProgress(
   });
 }
 
-// ---------- Episode Ratings ----------
-export async function rateEpisode(
-  episodeId: string,
-  animeId: string,
-  uid: string,
-  score: number,
-) {
-  // 1. set rating
-  await set(ref(db, `episodes/${episodeId}/ratings/${uid}`), { uid, score });
-
-  // 2. recalculate global rating across this anime's episodes
-  // Pull all episodes' ratings via the episodes node (filter by anime_id)
-  const epsSnap = await get(ref(db, "episodes"));
-  const eps = (epsSnap.val() as Record<string, any>) || {};
-  let total = 0;
-  let count = 0;
-  for (const ep of Object.values(eps)) {
-    if ((ep as any).anime_id !== animeId) continue;
-    const ratings = (ep as any).ratings as Record<string, { score: number }> | undefined;
-    if (!ratings) continue;
-    for (const r of Object.values(ratings)) {
-      total += Number(r.score) || 0;
-      count += 1;
-    }
-  }
-  const avg = count ? total / count : 0;
+// ---------- Anime Ratings (per user, one rating per anime) ----------
+export async function rateAnime(animeId: string, uid: string, score: number) {
+  await set(ref(db, `animes/${animeId}/userRatings/${uid}`), { uid, score });
+  // Recompute global average from all userRatings on this anime
+  const snap = await get(ref(db, `animes/${animeId}/userRatings`));
+  const v = (snap.val() as Record<string, { score: number }>) || {};
+  const scores = Object.values(v).map((r) => Number(r.score) || 0);
+  const count = scores.length;
+  const avg = count ? scores.reduce((a, b) => a + b, 0) / count : 0;
   await update(ref(db, `animes/${animeId}`), {
     globalRating: Math.round(avg * 10) / 10,
     ratingCount: count,

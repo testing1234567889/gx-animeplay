@@ -1,14 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Crown, Lock, Play, Loader2, FastForward, Star } from "lucide-react";
-import { toast } from "sonner";
+import { useEffect, useMemo, useState } from "react";
+import { Crown, Lock, Play, Loader2 } from "lucide-react";
 import { getAnime, subscribeEpisodes } from "../lib/anime-api";
 import type { Anime, Episode } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
 import { Comments } from "../components/Comments";
 import { useAuth } from "../lib/auth-context";
 import { recordHistory } from "../lib/history";
-import { saveWatchProgress, rateEpisode } from "../lib/progress";
 
 export const Route = createFileRoute("/watch/$animeId/$episodeId")({
   component: WatchPage,
@@ -26,9 +24,6 @@ function WatchPage() {
   const [episodes, setEpisodes] = useState<Episode[] | null>(null);
   const [server, setServer] = useState<ServerKey>("s1");
   const [now, setNow] = useState(Date.now());
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
 
   useEffect(() => {
     getAnime(animeId).then(setAnime);
@@ -109,61 +104,7 @@ function WatchPage() {
   };
 
   const [playerLoading, setPlayerLoading] = useState(true);
-  useEffect(() => { setPlayerLoading(true); setCurrentTime(0); setDuration(0); }, [server, episodeId]);
-
-  // Resume + progress saving for native <video> player
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    const resumeAt = profile?.watchProgress?.[episodeId]?.lastMinute;
-    const onMeta = () => {
-      setDuration(v.duration || 0);
-      if (resumeAt && v.duration && resumeAt < v.duration - 5) {
-        try { v.currentTime = resumeAt; } catch {}
-      }
-    };
-    const onTime = () => setCurrentTime(v.currentTime);
-    v.addEventListener("loadedmetadata", onMeta);
-    v.addEventListener("timeupdate", onTime);
-    return () => {
-      v.removeEventListener("loadedmetadata", onMeta);
-      v.removeEventListener("timeupdate", onTime);
-    };
-  }, [server, episodeId, profile?.watchProgress]);
-
-  // Throttle save progress every 10s and on unmount
-  useEffect(() => {
-    if (!user || !duration || locked) return;
-    const id = setInterval(() => {
-      const v = videoRef.current;
-      if (!v || v.paused) return;
-      saveWatchProgress(user.uid, episodeId, {
-        lastMinute: Math.floor(v.currentTime),
-        percentage: Math.min(100, Math.floor((v.currentTime / duration) * 100)),
-      }).catch(() => {});
-    }, 10000);
-    return () => {
-      clearInterval(id);
-      const v = videoRef.current;
-      if (v && v.duration) {
-        saveWatchProgress(user.uid, episodeId, {
-          lastMinute: Math.floor(v.currentTime),
-          percentage: Math.min(100, Math.floor((v.currentTime / v.duration) * 100)),
-        }).catch(() => {});
-      }
-    };
-  }, [user, duration, episodeId, locked]);
-
-  const seekTo = (sec: number) => {
-    const v = videoRef.current;
-    if (v) { try { v.currentTime = sec; v.play(); } catch {} }
-    else toast("Seek only works on the native player (Server 3 .mp4).");
-  };
-
-  const skipStart = current?.skipStart ?? 0;
-  const skipEnd = current?.skipEnd ?? 0;
-  const showSkip =
-    skipEnd > skipStart && currentTime >= skipStart && currentTime < skipEnd && !!videoRef.current;
+  useEffect(() => { setPlayerLoading(true); }, [server, episodeId]);
 
   const renderPlayer = () => {
     if (!current) return null;
@@ -196,7 +137,6 @@ function WatchPage() {
       if (isMp4) {
         return (
           <video
-            ref={videoRef}
             src={s3Data}
             controls
             playsInline
@@ -220,7 +160,6 @@ function WatchPage() {
     }
     return (
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-        <div className="mb-2 text-3xl">📡</div>
         <div className="text-lg font-semibold">Video Offline</div>
         <p className="mt-1 text-sm text-muted-foreground">Try another server.</p>
       </div>
@@ -271,15 +210,6 @@ function WatchPage() {
                 <Loader2 className="h-10 w-10 animate-spin text-primary" />
               </div>
             )}
-            {showSkip && (
-              <button
-                type="button"
-                onClick={() => seekTo(skipEnd)}
-                className="absolute bottom-16 right-3 md:bottom-20 md:right-6 inline-flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 text-sm font-bold text-white ring-1 ring-white/20 backdrop-blur-md hover:bg-primary hover:ring-primary transition animate-fade-in"
-              >
-                <FastForward className="h-4 w-4" /> Skip Intro
-              </button>
-            )}
           </>
         )}
       </div>
@@ -310,28 +240,9 @@ function WatchPage() {
               <span className="rounded-full px-2 py-0.5 text-[10px] font-bold text-black"
                 style={{ background: "linear-gradient(135deg,#FDE68A,#F59E0B)" }}>VIP</span>
             )}
-            {anime.globalRating ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-400 ring-1 ring-amber-400/30">
-                <Star className="h-3 w-3 fill-current" /> {anime.globalRating.toFixed(1)}
-              </span>
-            ) : null}
           </h1>
           {current.title && <p className="mt-1 text-sm text-muted-foreground">{current.title}</p>}
         </div>
-      )}
-
-      {/* Episode rating */}
-      {user && current && !locked && !current.ratings?.[user.uid] && (
-        <RatingPicker
-          onPick={async (score) => {
-            try {
-              await rateEpisode(episodeId, animeId, user.uid, score);
-              toast.success("Thanks for rating!");
-            } catch (e: any) {
-              toast.error(e?.message ?? "Failed to rate");
-            }
-          }}
-        />
       )}
 
       <section className="mt-8">
@@ -351,9 +262,9 @@ function WatchPage() {
                     className={"flex w-full items-center gap-3 rounded-xl p-3 text-left transition ring-1 " +
                       (active ? "bg-primary/15 ring-primary/50" : "bg-card ring-white/5 hover:ring-primary/30")}
                   >
-                    <div className={"flex h-11 w-11 shrink-0 items-center justify-center rounded-lg " +
+                    <div className={"flex h-10 w-10 md:h-11 md:w-11 shrink-0 items-center justify-center rounded-lg " +
                       (active ? "bg-primary text-primary-foreground" : "bg-primary/15 text-primary")}>
-                      <Play className="w-4 h-4 fill-current" />
+                      <Play className="h-4 w-4 md:h-5 md:w-5 fill-current" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-1.5">
@@ -378,44 +289,7 @@ function WatchPage() {
         )}
       </section>
 
-      <Comments episodeId={episodeId} onSeek={seekTo} />
+      <Comments episodeId={episodeId} />
     </main>
-  );
-}
-
-function RatingPicker({ onPick }: { onPick: (score: number) => void | Promise<void> }) {
-  const [hover, setHover] = useState(0);
-  const [picked, setPicked] = useState(0);
-  const [busy, setBusy] = useState(false);
-  const submit = async (n: number) => {
-    if (busy) return;
-    setBusy(true);
-    setPicked(n);
-    try { await onPick(n); } finally { setBusy(false); }
-  };
-  return (
-    <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl bg-card p-3 ring-1 ring-white/5">
-      <span className="text-sm font-semibold">Rate this episode:</span>
-      <div className="flex items-center gap-1">
-        {[1, 2, 3, 4, 5].map((n) => {
-          const active = (hover || picked) >= n;
-          return (
-            <button
-              key={n}
-              type="button"
-              disabled={busy}
-              onMouseEnter={() => setHover(n)}
-              onMouseLeave={() => setHover(0)}
-              onClick={() => submit(n)}
-              aria-label={`${n} stars`}
-              className="p-1 transition hover:scale-110 disabled:opacity-50"
-            >
-              <Star className={"h-6 w-6 md:h-7 md:w-7 " + (active ? "fill-amber-400 text-amber-400" : "text-muted-foreground")} />
-            </button>
-          );
-        })}
-      </div>
-      {busy && <span className="text-xs text-muted-foreground">Saving…</span>}
-    </div>
   );
 }

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Flame, CheckCircle2, Bookmark, Star } from "lucide-react";
+import { Flame, CheckCircle2, Bookmark } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Anime } from "../lib/types";
 import { useAuth } from "../lib/auth-context";
@@ -10,10 +10,9 @@ type Props = {
   a: Anime;
   showBookmark?: boolean;
   latestEpOverride?: string;
-  progress?: number; // 0-100
 };
 
-export function AnimeCard({ a, showBookmark = true, latestEpOverride, progress }: Props) {
+export function AnimeCard({ a, showBookmark = true, latestEpOverride }: Props) {
   const { user } = useAuth();
   const [bm, setBm] = useState(false);
 
@@ -115,22 +114,6 @@ export function AnimeCard({ a, showBookmark = true, latestEpOverride, progress }
           </button>
         )}
 
-        {/* Global rating badge */}
-        {a.globalRating ? (
-          <span className="absolute top-1.5 left-1/2 -translate-x-1/2 inline-flex items-center gap-0.5 rounded-full bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-amber-300 ring-1 ring-amber-300/30 backdrop-blur-sm">
-            <Star className="h-2.5 w-2.5 fill-current" /> {a.globalRating.toFixed(1)}
-          </span>
-        ) : null}
-
-        {/* Watch progress */}
-        {progress != null && progress > 0 && (
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/40">
-            <div
-              className="h-full bg-red-600"
-              style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
-            />
-          </div>
-        )}
       </div>
       <div className="mt-1.5 line-clamp-2 text-xs sm:text-sm font-medium text-foreground">
         {a.title}
