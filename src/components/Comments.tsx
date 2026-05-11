@@ -119,7 +119,7 @@ export function Comments({ episodeId }: { episodeId: string }) {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="truncate text-sm font-semibold">{name}</span>
-                    <VipBadge vip={!!vipMap[c.uid]} />
+                    <RoleBadges roles={rolesFromProfile(roleMap[c.uid])} />
                     <span className="text-[11px] text-muted-foreground">
                       {new Date(c.created_at).toLocaleString()}
                     </span>
