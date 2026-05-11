@@ -89,7 +89,7 @@ function AdminLayout() {
       <Outlet />
 
       <nav className="md:hidden fixed inset-x-0 bottom-0 z-40 glass border-t border-white/10 pb-[env(safe-area-inset-bottom)]">
-        <div className="mx-auto grid max-w-md grid-cols-3">
+        <div className="mx-auto grid max-w-md grid-cols-4">
           {tabs.map((t) => (
             <Link
               key={t.to}
