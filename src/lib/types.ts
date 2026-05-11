@@ -52,6 +52,7 @@ export type UserProfile = {
   isAdmin?: boolean;
   isModerator?: boolean;
   isBeta?: boolean;
+  watchProgress?: Record<string, { lastMinute: number; percentage: number; updated_at?: number }>;
   created_at?: number;
 };
 
