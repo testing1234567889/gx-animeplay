@@ -216,3 +216,58 @@ function AnimeDetail() {
     </main>
   );
 }
+
+function RateBlock({ anime, onRated }: { anime: Anime; onRated: () => void }) {
+  const { user } = useAuth();
+  const [hover, setHover] = useState(0);
+  const [picked, setPicked] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [justRated, setJustRated] = useState(false);
+
+  if (!user) return null;
+  const alreadyRated = !!anime.userRatings?.[user.uid] || justRated;
+  if (alreadyRated) return null;
+
+  const submit = async (n: number) => {
+    if (busy) return;
+    setBusy(true);
+    setPicked(n);
+    try {
+      await rateAnime(anime.id, user.uid, n);
+      setJustRated(true);
+      toast.success("Thanks for rating!");
+      onRated();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to rate");
+      setPicked(0);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="mt-6 flex flex-wrap items-center gap-3 rounded-xl bg-card p-3 ring-1 ring-white/5">
+      <span className="text-sm font-semibold">Rate this anime:</span>
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map((n) => {
+          const active = (hover || picked) >= n;
+          return (
+            <button
+              key={n}
+              type="button"
+              disabled={busy}
+              onMouseEnter={() => setHover(n)}
+              onMouseLeave={() => setHover(0)}
+              onClick={() => submit(n)}
+              aria-label={`${n} stars`}
+              className="p-1 transition hover:scale-110 disabled:opacity-50"
+            >
+              <Star className={"h-6 w-6 md:h-7 md:w-7 " + (active ? "fill-amber-400 text-amber-400" : "text-muted-foreground")} />
+            </button>
+          );
+        })}
+      </div>
+      {busy && <span className="text-xs text-muted-foreground">Saving…</span>}
+    </div>
+  );
+}
