@@ -80,6 +80,7 @@ function AnimesAdmin() {
       type: a.type ?? "Donghua",
       status: a.status ?? "Ongoing",
       latest_ep: a.latest_ep != null ? String(a.latest_ep) : "",
+      schedule_day: a.schedule_day ?? "",
       isTrending: !!a.isTrending,
       isLatest: !!a.isLatest,
       isMovie: !!a.isMovie,
