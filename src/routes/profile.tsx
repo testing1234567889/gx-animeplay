@@ -231,6 +231,7 @@ function EditProfileModal({
     setBusy(true);
     try {
       await updateProfile(auth.currentUser, { displayName: n, photoURL: a || null });
+      await update(ref(db, `users/${uid}`), { displayName: n, photoURL: a || null });
       await setPublicBio(uid, b);
       onSaved(n, b);
       toast.success("Profile updated");
