@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Crown, Lock, Maximize, Minimize } from "lucide-react";
+import { Crown, Lock, Maximize } from "lucide-react";
 import { getAnime, subscribeEpisodes } from "../lib/anime-api";
 import type { Anime, Episode } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
@@ -26,21 +26,31 @@ function WatchPage() {
   const [now, setNow] = useState(Date.now());
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     const onFullscreenChange = () => {
       const isFull = !!document.fullscreenElement;
-      setIsFullscreen(isFull);
-      if (!isFull && (window.screen as any)?.orientation?.unlock) {
-        try { (window.screen as any).orientation.unlock(); } catch {}
+      const elem = playerContainerRef.current;
+      if (elem) {
+        if (isFull) {
+          elem.classList.remove("aspect-video", "rounded-lg");
+          elem.classList.add("h-screen", "w-screen");
+        } else {
+          elem.classList.add("aspect-video", "rounded-lg");
+          elem.classList.remove("h-screen", "w-screen");
+          const orientation = (window.screen as any)?.orientation;
+          if (orientation?.unlock) {
+            try {
+              const unlockResult = orientation.unlock();
+              if (unlockResult?.catch) unlockResult.catch(() => {});
+            } catch {}
+          }
+        }
       }
     };
     document.addEventListener("fullscreenchange", onFullscreenChange);
-    document.addEventListener("webkitfullscreenchange", onFullscreenChange as any);
     return () => {
       document.removeEventListener("fullscreenchange", onFullscreenChange);
-      document.removeEventListener("webkitfullscreenchange", onFullscreenChange as any);
     };
   }, []);
 
@@ -145,10 +155,7 @@ function WatchPage() {
 
       <div
         ref={playerContainerRef}
-        className={
-          "relative flex items-center justify-center bg-black w-full ring-1 ring-white/10 " +
-          (isFullscreen ? "h-screen" : "aspect-video rounded-2xl overflow-hidden")
-        }
+        className="relative flex items-center justify-center bg-black w-full aspect-video rounded-lg overflow-hidden"
       >
         {!current ? (
           <Skeleton className="absolute inset-0 rounded-none" />
@@ -224,7 +231,7 @@ function WatchPage() {
             aria-label="Full Screen"
             className="p-2.5 rounded-lg bg-slate-800 hover:bg-cyan-900 border border-slate-700 text-cyan-400 transition-all"
           >
-            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            <Maximize className="h-4 w-4" />
           </button>
         </div>
       )}
