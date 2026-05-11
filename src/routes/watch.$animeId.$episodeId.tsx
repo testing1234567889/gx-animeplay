@@ -1,12 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Crown, Lock, Play, Loader2 } from "lucide-react";
+import { Crown, Lock, Loader2, Server as ServerIcon, Download, Flag } from "lucide-react";
+import { toast } from "sonner";
 import { getAnime, subscribeEpisodes } from "../lib/anime-api";
+import { reportVideo } from "../lib/progress";
 import type { Anime, Episode } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
 import { Comments } from "../components/Comments";
 import { useAuth } from "../lib/auth-context";
 import { recordHistory } from "../lib/history";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "../components/ui/dialog";
 
 export const Route = createFileRoute("/watch/$animeId/$episodeId")({
   component: WatchPage,
@@ -15,6 +20,8 @@ export const Route = createFileRoute("/watch/$animeId/$episodeId")({
 
 type ServerKey = "s1" | "s2" | "s3";
 const VIP_DELAY_MS = 30 * 60 * 1000;
+const VIDEO_REASONS = ["Video Error", "Subtitle Rusak", "Salah Video", "Other"] as const;
+type VideoReason = (typeof VIDEO_REASONS)[number];
 
 function WatchPage() {
   const { animeId, episodeId } = Route.useParams();
@@ -24,27 +31,27 @@ function WatchPage() {
   const [episodes, setEpisodes] = useState<Episode[] | null>(null);
   const [server, setServer] = useState<ServerKey>("s1");
   const [now, setNow] = useState(Date.now());
+  const [synopsisOpen, setSynopsisOpen] = useState(false);
+  const [serverDialog, setServerDialog] = useState(false);
+  const [reportDialog, setReportDialog] = useState(false);
 
   useEffect(() => {
     getAnime(animeId).then(setAnime);
     return subscribeEpisodes(animeId, setEpisodes);
   }, [animeId]);
 
-  // Auto-rotate to landscape when entering native iframe fullscreen on mobile
+  // Auto-rotate landscape on native iframe fullscreen
   useEffect(() => {
-    const handleFullscreenChange = async () => {
+    const handle = async () => {
+      const orient = (window.screen as any)?.orientation;
       if (document.fullscreenElement) {
-        const orient = (window.screen as any)?.orientation;
-        if (orient?.lock) {
-          try { await orient.lock("landscape"); } catch {}
-        }
+        if (orient?.lock) { try { await orient.lock("landscape"); } catch {} }
       } else {
-        const orient = (window.screen as any)?.orientation;
         if (orient?.unlock) { try { orient.unlock(); } catch {} }
       }
     };
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("fullscreenchange", handle);
+    return () => document.removeEventListener("fullscreenchange", handle);
   }, []);
 
   const current = useMemo(() => episodes?.find((e) => e.id === episodeId) ?? null, [episodes, episodeId]);
@@ -171,6 +178,12 @@ function WatchPage() {
     { k: "s2", label: s2Name, available: !!s2Data },
     { k: "s3", label: s3Name, available: !!s3Data },
   ];
+  const activeServerLabel = servers.find((s) => s.k === server)?.label ?? "Server";
+  const downloadUrl = current?.download_url?.trim() || "";
+
+  // Synopsis clamp logic
+  const synopsis = anime?.description ?? "";
+  const isLongSynopsis = synopsis.length > 140;
 
   return (
     <main className="mx-auto max-w-6xl px-4 pb-24 pt-6">
@@ -214,82 +227,265 @@ function WatchPage() {
         )}
       </div>
 
-      {current && !locked && (
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="mr-2 text-xs uppercase tracking-wider text-muted-foreground">Server</span>
-          {servers.filter((s) => s.available).map((s) => (
-            <button
-              key={s.k}
-              onClick={() => setServer(s.k)}
-              className={
-                "rounded-xl px-4 py-2 text-sm font-medium transition glass " +
-                (server === s.k ? "bg-primary/20 text-foreground ring-1 ring-primary" : "text-muted-foreground hover:text-foreground")
-              }
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
-      )}
-
+      {/* Header info: poster + title + episode title */}
       {anime && current && (
-        <div className="mt-6">
-          <h1 className="text-xl md:text-2xl font-bold flex flex-wrap items-center gap-2">
-            {anime.title} <span className="text-muted-foreground font-normal">— Episode {current.number}</span>
+        <div className="mt-4 flex gap-3">
+          {anime.poster_url ? (
+            <Link
+              to="/anime/$animeId"
+              params={{ animeId }}
+              className="block w-16 h-24 shrink-0 overflow-hidden rounded-lg ring-1 ring-white/10"
+            >
+              <img
+                src={anime.poster_url}
+                alt={anime.title}
+                referrerPolicy="no-referrer"
+                className="h-full w-full object-cover"
+              />
+            </Link>
+          ) : null}
+          <div className="min-w-0 flex-1">
+            <Link to="/anime/$animeId" params={{ animeId }} className="block">
+              <h1 className="text-lg md:text-xl font-bold leading-tight hover:text-primary transition truncate">
+                {anime.title}
+              </h1>
+            </Link>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Episode {current.number}
+              {current.title ? <span> — {current.title}</span> : null}
+            </p>
             {current.vip_only && (
-              <span className="rounded-full px-2 py-0.5 text-[10px] font-bold text-black"
+              <span className="mt-2 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold text-black"
                 style={{ background: "linear-gradient(135deg,#FDE68A,#F59E0B)" }}>VIP</span>
             )}
-          </h1>
-          {current.title && <p className="mt-1 text-sm text-muted-foreground">{current.title}</p>}
+          </div>
         </div>
       )}
 
+      {/* Expandable synopsis */}
+      {synopsis && (
+        <div className="mt-4">
+          <p className={"text-sm text-slate-300 leading-relaxed whitespace-pre-wrap " + (synopsisOpen || !isLongSynopsis ? "" : "line-clamp-2")}>
+            {synopsis}
+          </p>
+          {isLongSynopsis && (
+            <button
+              onClick={() => setSynopsisOpen((v) => !v)}
+              className="mt-1 text-sm font-semibold text-blue-500 hover:text-blue-400"
+            >
+              {synopsisOpen ? "Tutup ‹" : "Baca semua ›"}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Action button row */}
+      {current && !locked && (
+        <div className="mt-5 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap">
+          <button
+            onClick={() => setServerDialog(true)}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-card px-4 py-2.5 text-sm font-semibold ring-1 ring-white/10 hover:ring-primary/40 transition"
+          >
+            <ServerIcon className="h-4 w-4" />
+            <span className="truncate">{activeServerLabel}</span>
+          </button>
+          <a
+            href={downloadUrl || undefined}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-disabled={!downloadUrl}
+            onClick={(e) => { if (!downloadUrl) { e.preventDefault(); toast.info("Download not available"); } }}
+            className={
+              "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold ring-1 transition " +
+              (downloadUrl
+                ? "bg-primary/15 text-primary ring-primary/40 hover:bg-primary/25"
+                : "bg-card text-muted-foreground ring-white/10")
+            }
+          >
+            <Download className="h-4 w-4" /> Download
+          </a>
+          <button
+            onClick={() => {
+              if (!user) return toast.error("Sign in to report");
+              setReportDialog(true);
+            }}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-card px-4 py-2.5 text-sm font-semibold ring-1 ring-white/10 hover:ring-amber-400/40 hover:text-amber-400 transition"
+          >
+            <Flag className="h-4 w-4" /> Report
+          </button>
+        </div>
+      )}
+
+      {/* Horizontal episode navigation */}
       <section className="mt-8">
         <h2 className="mb-3 text-lg font-semibold">Episodes</h2>
         {episodes === null ? (
-          <div className="space-y-2">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}</div>
+          <div className="flex gap-2 overflow-hidden">
+            {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-12 w-12 shrink-0" />)}
+          </div>
         ) : episodes.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">No episodes yet.</div>
+          <div className="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
+            No episodes yet.
+          </div>
         ) : (
-          <ul className="space-y-2">
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-thin scroll-smooth snap-x">
             {episodes.map((ep) => {
               const active = ep.id === episodeId;
               return (
-                <li key={ep.id}>
-                  <button
-                    onClick={() => navigate({ to: "/watch/$animeId/$episodeId", params: { animeId, episodeId: ep.id } })}
-                    className={"flex w-full items-center gap-3 rounded-xl p-3 text-left transition ring-1 " +
-                      (active ? "bg-primary/15 ring-primary/50" : "bg-card ring-white/5 hover:ring-primary/30")}
-                  >
-                    <div className={"flex h-10 w-10 md:h-11 md:w-11 shrink-0 items-center justify-center rounded-lg " +
-                      (active ? "bg-primary text-primary-foreground" : "bg-primary/15 text-primary")}>
-                      <Play className="h-4 w-4 md:h-5 md:w-5 fill-current" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="truncate text-sm font-semibold">
-                          Episode {ep.number}
-                          {ep.title ? <span className="text-muted-foreground"> — {ep.title}</span> : null}
-                        </span>
-                        {ep.vip_only && (
-                          <span className="rounded px-1.5 py-0.5 text-[9px] font-bold text-black"
-                            style={{ background: "linear-gradient(135deg,#FDE68A,#F59E0B)" }}>VIP</span>
-                        )}
-                      </div>
-                      <div className="mt-0.5 truncate text-xs text-muted-foreground">
-                        {[ep.server1_data || ep.dailymotion_id, ep.server2_data || ep.okru_id, ep.server3_data].filter(Boolean).length || 0} server(s)
-                      </div>
-                    </div>
-                  </button>
-                </li>
+                <button
+                  key={ep.id}
+                  onClick={() => navigate({ to: "/watch/$animeId/$episodeId", params: { animeId, episodeId: ep.id } })}
+                  className={
+                    "relative flex h-12 min-w-[3rem] shrink-0 snap-start items-center justify-center rounded-xl px-3 text-sm font-bold ring-1 transition " +
+                    (active
+                      ? "bg-primary text-primary-foreground ring-primary shadow-lg shadow-primary/40 scale-105"
+                      : "bg-card text-foreground/80 ring-white/10 hover:ring-primary/40")
+                  }
+                  title={ep.title || `Episode ${ep.number}`}
+                >
+                  {ep.number}
+                  {ep.vip_only && (
+                    <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-yellow-400 ring-2 ring-background" />
+                  )}
+                </button>
               );
             })}
-          </ul>
+          </div>
         )}
       </section>
 
       <Comments episodeId={episodeId} />
+
+      {/* Server selection dialog */}
+      <Dialog open={serverDialog} onOpenChange={setServerDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Pilih Server</DialogTitle>
+            <DialogDescription>Switch streaming source if the current one is offline.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2">
+            {servers.filter((s) => s.available).map((s) => (
+              <button
+                key={s.k}
+                onClick={() => { setServer(s.k); setServerDialog(false); }}
+                className={
+                  "flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold ring-1 transition " +
+                  (server === s.k
+                    ? "bg-primary/20 text-primary ring-primary/50"
+                    : "bg-card ring-white/10 hover:ring-primary/40")
+                }
+              >
+                <span className="inline-flex items-center gap-2"><ServerIcon className="h-4 w-4" /> {s.label}</span>
+                {server === s.k && <span className="text-[11px] uppercase">Active</span>}
+              </button>
+            ))}
+            {servers.filter((s) => s.available).length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">No servers available.</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Video report dialog */}
+      <VideoReportDialog
+        open={reportDialog}
+        onClose={() => setReportDialog(false)}
+        animeId={animeId}
+        episodeId={episodeId}
+        reporterUid={user?.uid ?? ""}
+      />
     </main>
+  );
+}
+
+function VideoReportDialog({
+  open, onClose, animeId, episodeId, reporterUid,
+}: {
+  open: boolean;
+  onClose: () => void;
+  animeId: string;
+  episodeId: string;
+  reporterUid: string;
+}) {
+  const [reason, setReason] = useState<VideoReason>("Video Error");
+  const [custom, setCustom] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (open) { setReason("Video Error"); setCustom(""); }
+  }, [open]);
+
+  const submit = async () => {
+    if (!reporterUid) return;
+    if (reason === "Other" && !custom.trim()) return toast.error("Describe the issue");
+    setBusy(true);
+    try {
+      await reportVideo({
+        animeId, episodeId, reporterUid,
+        reason,
+        customText: reason === "Other" ? custom.trim() : undefined,
+      });
+      toast.success("Thanks — moderators have been notified.");
+      onClose();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Laporkan Video</DialogTitle>
+          <DialogDescription>Bantu kami memperbaiki masalah pada episode ini.</DialogDescription>
+        </DialogHeader>
+        <div className="grid grid-cols-2 gap-2">
+          {VIDEO_REASONS.map((r) => (
+            <button
+              key={r}
+              type="button"
+              onClick={() => setReason(r)}
+              className={
+                "rounded-xl px-3 py-2.5 text-sm font-medium ring-1 transition " +
+                (reason === r
+                  ? "bg-primary/20 text-primary ring-primary/50"
+                  : "bg-card text-foreground/80 ring-white/10 hover:ring-primary/30")
+              }
+            >
+              {r}
+            </button>
+          ))}
+        </div>
+        {reason === "Other" && (
+          <textarea
+            value={custom}
+            onChange={(e) => setCustom(e.target.value)}
+            rows={3}
+            maxLength={200}
+            placeholder="Jelaskan masalahnya (max 200 chars)"
+            className="input resize-none"
+          />
+        )}
+        <DialogFooter>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg bg-card px-4 py-2 text-sm ring-1 ring-white/10 hover:ring-white/20"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={submit}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+          >
+            {busy ? "Submitting…" : "Submit Report"}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -28,3 +28,23 @@ export async function deleteComment(episodeId: string, id: string) {
 export async function setCommentPinned(episodeId: string, id: string, pinned: boolean) {
   await update(ref(db, `comments/${episodeId}/${id}`), { pinned });
 }
+
+export type UserCommentRef = Comment & { episode_id: string };
+
+export function subscribeAllCommentsByUser(uid: string, cb: (rows: UserCommentRef[]) => void) {
+  return onValue(ref(db, "comments"), (snap) => {
+    const v = snap.val() as Record<string, Record<string, any>> | null;
+    const out: UserCommentRef[] = [];
+    if (v) {
+      for (const [epId, byId] of Object.entries(v)) {
+        for (const [cid, val] of Object.entries(byId || {})) {
+          if ((val as any)?.uid === uid) {
+            out.push({ id: cid, episode_id: epId, ...(val as object) } as UserCommentRef);
+          }
+        }
+      }
+    }
+    out.sort((a, b) => b.created_at - a.created_at);
+    cb(out);
+  });
+}

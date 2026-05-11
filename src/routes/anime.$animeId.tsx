@@ -24,6 +24,7 @@ function AnimeDetail() {
   const { user } = useAuth();
   const [bm, setBm] = useState(false);
   const [bmBusy, setBmBusy] = useState(false);
+  const [epQuery, setEpQuery] = useState("");
 
   useEffect(() => {
     getAnime(animeId).then(setAnime);
@@ -186,7 +187,17 @@ function AnimeDetail() {
         </motion.div>
 
         <section className="mt-10">
-          <h2 className="mb-3 text-lg font-semibold">Episodes</h2>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold">Episodes</h2>
+            {episodes && episodes.length > 0 && (
+              <input
+                value={epQuery}
+                onChange={(e) => setEpQuery(e.target.value)}
+                placeholder="Cari episode..."
+                className="input max-w-xs"
+              />
+            )}
+          </div>
           {episodes === null ? (
             <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-10">
               {Array.from({ length: 12 }).map((_, i) => (
@@ -197,20 +208,37 @@ function AnimeDetail() {
             <div className="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
               No episodes yet.
             </div>
-          ) : (
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-10">
-              {episodes.map((ep) => (
-                <Link
-                  key={ep.id}
-                  to="/watch/$animeId/$episodeId"
-                  params={{ animeId, episodeId: ep.id }}
-                  className="flex h-12 items-center justify-center rounded-lg bg-card text-sm font-medium ring-1 ring-white/5 transition hover:bg-primary hover:text-primary-foreground"
-                >
-                  {ep.number}
-                </Link>
-              ))}
-            </div>
-          )}
+          ) : (() => {
+            const q = epQuery.trim().toLowerCase();
+            const filtered = q
+              ? episodes.filter(
+                  (ep) =>
+                    String(ep.number).includes(q) ||
+                    (ep.title ?? "").toLowerCase().includes(q),
+                )
+              : episodes;
+            if (filtered.length === 0) {
+              return (
+                <div className="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
+                  No episodes match "{epQuery}".
+                </div>
+              );
+            }
+            return (
+              <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-10">
+                {filtered.map((ep) => (
+                  <Link
+                    key={ep.id}
+                    to="/watch/$animeId/$episodeId"
+                    params={{ animeId, episodeId: ep.id }}
+                    className="flex h-12 items-center justify-center rounded-lg bg-card text-sm font-medium ring-1 ring-white/5 transition hover:bg-primary hover:text-primary-foreground"
+                  >
+                    {ep.number}
+                  </Link>
+                ))}
+              </div>
+            );
+          })()}
         </section>
       </div>
     </main>

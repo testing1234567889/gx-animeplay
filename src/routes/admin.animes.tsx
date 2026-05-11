@@ -375,6 +375,7 @@ type EpForm = {
   release_time: string;
   skipStart: string;
   skipEnd: string;
+  download_url: string;
 };
 const emptyEp: EpForm = {
   number: "", title: "",
@@ -383,6 +384,7 @@ const emptyEp: EpForm = {
   server3_data: "", server3_name: "",
   vip_only: false, release_time: "",
   skipStart: "", skipEnd: "",
+  download_url: "",
 };
 
 function toLocalInput(ms?: number) {
@@ -428,6 +430,7 @@ function EpisodesManager({ anime }: { anime: Anime }) {
         release_time: release_ms,
         skipStart: form.skipStart ? Number(form.skipStart) : 0,
         skipEnd: form.skipEnd ? Number(form.skipEnd) : 0,
+        download_url: form.download_url.trim(),
       };
       if (editing) {
         await updateEpisode(editing.id, payload);
@@ -511,6 +514,7 @@ function EpisodesManager({ anime }: { anime: Anime }) {
                       release_time: toLocalInput(ep.release_time),
                       skipStart: ep.skipStart != null ? String(ep.skipStart) : "",
                       skipEnd: ep.skipEnd != null ? String(ep.skipEnd) : "",
+                      download_url: ep.download_url ?? "",
                     });
                   }}
                   className="rounded p-1.5 text-muted-foreground hover:bg-white/5 hover:text-foreground"
@@ -646,6 +650,14 @@ function EpisodesManager({ anime }: { anime: Anime }) {
             />
           </Field>
         </div>
+        <Field label="Download URL (optional)">
+          <input
+            value={form.download_url}
+            onChange={(e) => setForm({ ...form, download_url: e.target.value })}
+            placeholder="https://..."
+            className="input"
+          />
+        </Field>
         <label className="mb-3 flex cursor-pointer items-center gap-2 rounded-lg bg-input/40 px-3 py-2 text-xs ring-1 ring-yellow-400/30">
           <input
             type="checkbox"

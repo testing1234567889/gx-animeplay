@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { ref, get } from "firebase/database";
-import { Pin, Reply as ReplyIcon, Trash2, Flag, EyeOff } from "lucide-react";
+import { Pin, Reply as ReplyIcon, Trash2, Flag, EyeOff, Send, ArrowUp } from "lucide-react";
 import { db } from "../lib/firebase";
 import { useAuth } from "../lib/auth-context";
 import {
@@ -95,6 +95,9 @@ export function Comments({ episodeId, onSeek }: Props) {
   const [roleMap, setRoleMap] = useState<Record<string, UserProfile>>({});
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [reportFor, setReportFor] = useState<Comment | null>(null);
+  const [sortMode, setSortMode] = useState<"top" | "new">("new");
+  const [showFab, setShowFab] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
 
   const isAdmin = !!profile?.isAdmin;
 
@@ -137,10 +140,30 @@ export function Comments({ episodeId, onSeek }: Props) {
     for (const arr of byParent.values()) arr.sort((a, b) => a.created_at - b.created_at);
     tops.sort((a, b) => {
       if (!!b.pinned !== !!a.pinned) return b.pinned ? 1 : -1;
+      if (sortMode === "top") {
+        const ar = (byParent.get(a.id)?.length ?? 0);
+        const br = (byParent.get(b.id)?.length ?? 0);
+        if (br !== ar) return br - ar;
+      }
       return b.created_at - a.created_at;
     });
     return { roots: tops, repliesOf: byParent };
-  }, [items]);
+  }, [items, sortMode]);
+
+  // FAB scroll detection — show when user has scrolled past comments top
+  useEffect(() => {
+    const onScroll = () => {
+      const el = sectionRef.current;
+      if (!el) return;
+      const top = el.getBoundingClientRect().top;
+      setShowFab(top < -200);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const totalCount = items?.length ?? 0;
 
   const submit = async (e: FormEvent, parentId: string | null) => {
     e.preventDefault();
@@ -209,7 +232,11 @@ export function Comments({ episodeId, onSeek }: Props) {
               <Flag className="h-3.5 w-3.5 fill-current" />
             </span>
           )}
-          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/20 text-sm font-bold text-primary">
+          <Link
+            to="/user/$userId"
+            params={{ userId: c.uid }}
+            className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/20 text-sm font-bold text-primary hover:ring-2 hover:ring-primary/60 transition"
+          >
             {photoURL ? (
               <img
                 src={photoURL}
@@ -221,7 +248,7 @@ export function Comments({ episodeId, onSeek }: Props) {
             ) : (
               <span>{initial}</span>
             )}
-          </div>
+          </Link>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               {c.pinned && (
@@ -229,7 +256,13 @@ export function Comments({ episodeId, onSeek }: Props) {
                   <Pin className="h-3 w-3" /> Pinned
                 </span>
               )}
-              <span className={"truncate text-sm font-bold " + nameColorFor(author)}>{name}</span>
+              <Link
+                to="/user/$userId"
+                params={{ userId: c.uid }}
+                className={"truncate text-sm font-bold hover:underline " + nameColorFor(author)}
+              >
+                {name}
+              </Link>
               <RoleBadges roles={rolesFromProfile(author)} />
               <span className="text-[11px] text-muted-foreground">{new Date(c.created_at).toLocaleString()}</span>
             </div>
@@ -317,17 +350,42 @@ export function Comments({ episodeId, onSeek }: Props) {
   };
 
   return (
-    <section className="mt-10">
-      <h2 className="mb-3 text-lg font-semibold">Comments</h2>
+    <section ref={sectionRef} className="relative mt-10">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-lg font-semibold">
+          Comments <span className="text-muted-foreground font-normal">({totalCount})</span>
+        </h2>
+        <div className="inline-flex rounded-full bg-card p-1 ring-1 ring-white/10">
+          <button
+            onClick={() => setSortMode("top")}
+            className={
+              "rounded-full px-3 py-1 text-xs font-semibold transition " +
+              (sortMode === "top" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")
+            }
+          >
+            Top Comment
+          </button>
+          <button
+            onClick={() => setSortMode("new")}
+            className={
+              "rounded-full px-3 py-1 text-xs font-semibold transition " +
+              (sortMode === "new" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")
+            }
+          >
+            Terbaru
+          </button>
+        </div>
+      </div>
+
       {user ? (
         replyTo === null && (
-          <form onSubmit={(e) => submit(e, null)} className="mb-5 rounded-xl bg-card p-3 ring-1 ring-white/5">
+          <form onSubmit={(e) => submit(e, null)} className="mb-5 rounded-2xl bg-card p-3 ring-1 ring-white/10 focus-within:ring-primary/40 transition">
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
               rows={3}
               placeholder="Share your thoughts…"
-              className="input resize-none"
+              className="input resize-none rounded-xl"
               maxLength={500}
             />
             <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
@@ -344,9 +402,10 @@ export function Comments({ episodeId, onSeek }: Props) {
                 <button
                   type="submit"
                   disabled={busy || !text.trim()}
-                  className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+                  aria-label="Post comment"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:bg-primary/90 disabled:opacity-60 transition"
                 >
-                  {busy ? "Posting…" : "Post"}
+                  <Send className="h-4 w-4" />
                 </button>
               </div>
             </div>
@@ -355,7 +414,7 @@ export function Comments({ episodeId, onSeek }: Props) {
       ) : (
         <Link
           to="/login"
-          className="mb-5 block rounded-xl bg-card p-3 text-center text-sm text-muted-foreground ring-1 ring-white/5 hover:text-foreground"
+          className="mb-5 block rounded-2xl bg-card p-3 text-center text-sm text-muted-foreground ring-1 ring-white/5 hover:text-foreground"
         >
           Sign in to join the discussion →
         </Link>
@@ -373,6 +432,16 @@ export function Comments({ episodeId, onSeek }: Props) {
         </div>
       ) : (
         <ul className="space-y-3">{roots.map((c) => renderItem(c))}</ul>
+      )}
+
+      {showFab && (
+        <button
+          onClick={() => sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          aria-label="Scroll to top of comments"
+          className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-40 inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl shadow-primary/40 hover:scale-110 transition"
+        >
+          <ArrowUp className="h-5 w-5" />
+        </button>
       )}
 
       <ReportDialog
