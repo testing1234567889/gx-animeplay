@@ -66,13 +66,14 @@ function ProfilePage() {
             <div className="truncate text-xs text-muted-foreground">{user.email}</div>
             {bio && <p className="mt-1 line-clamp-2 text-xs text-foreground/70">{bio}</p>}
           </div>
-          <Link
-            to="/profile/settings"
+          <button
+            type="button"
+            onClick={() => setEditOpen(true)}
             aria-label="Edit profile"
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15 hover:bg-white/15"
           >
             <Pencil className="h-4 w-4" />
-          </Link>
+          </button>
         </div>
 
         {pending && (
