@@ -69,9 +69,14 @@ function PaymentsAdmin() {
           {list.map((p) => (
             <li key={p.id} className="rounded-xl bg-card p-3 ring-1 ring-white/5">
               <div className="flex items-start gap-3">
-                <a href={p.proof_url} target="_blank" rel="noreferrer" className="block h-24 w-20 shrink-0 overflow-hidden rounded-lg bg-black/40">
-                  <img src={p.proof_url} alt="proof" referrerPolicy="no-referrer" className="h-full w-full object-cover" />
-                </a>
+                {(() => {
+                  const safeUrl = /^https:\/\//i.test(p.proof_url || "") || /^data:image\//i.test(p.proof_url || "") ? p.proof_url : "";
+                  return (
+                    <a href={safeUrl || undefined} target="_blank" rel="noreferrer noopener" className="block h-24 w-20 shrink-0 overflow-hidden rounded-lg bg-black/40">
+                      {safeUrl ? <img src={safeUrl} alt="proof" referrerPolicy="no-referrer" className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-[10px] text-muted-foreground">invalid url</div>}
+                    </a>
+                  );
+                })()}
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-semibold">{p.email || p.uid}</div>
                   <div className="text-xs text-muted-foreground">Rp {p.amount.toLocaleString("id-ID")}</div>

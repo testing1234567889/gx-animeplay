@@ -9,8 +9,6 @@ import { subscribeHistory, type HistoryItem } from "../lib/history";
 import { getPublicBio, setPublicBio } from "../lib/settings";
 import { RoleBadges, rolesFromProfile } from "../components/RoleBadges";
 
-const ADMIN_EMAIL = "husain2hasan4@gmail.com";
-
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
   head: () => ({ meta: [{ title: "Profile — AnimePlay" }] }),
@@ -73,7 +71,7 @@ function ProfilePage() {
             </div>
             <div className="truncate text-xs text-muted-foreground">{user.email}</div>
             <RoleBadges
-              roles={{ ...rolesFromProfile(profile), isAdmin: !!profile?.isAdmin || user.email === ADMIN_EMAIL }}
+              roles={{ ...rolesFromProfile(profile), isAdmin: !!profile?.isAdmin }}
               className="mt-1.5"
             />
             {bio && <p className="mt-1.5 line-clamp-2 text-xs text-foreground/70">{bio}</p>}
@@ -133,7 +131,7 @@ function ProfilePage() {
 
       <Section title="Account">
         <Row to="/upgrade" icon={Crown} label={vip ? "Manage Subscription" : "Subscription"} accent={vip} />
-        {(profile?.isAdmin || user.email === ADMIN_EMAIL) && (
+        {profile?.isAdmin && (
           <Row to="/admin" icon={Shield} label="Admin Dashboard" />
         )}
       </Section>

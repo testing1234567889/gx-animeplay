@@ -8,8 +8,6 @@ export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — AnimePlay" }] }),
 });
 
-const ADMIN_EMAIL = "husain2hasan4@gmail.com";
-
 const tabs = [
   { to: "/admin/animes", label: "Animes", icon: Film },
   { to: "/admin/payments", label: "Payments", icon: CreditCard },
@@ -28,9 +26,9 @@ function AdminLayout() {
     return () => clearTimeout(t);
   }, []);
 
-  const isSuper = !!user && user.email === ADMIN_EMAIL;
+  const isSuper = false;
   const profileReady = !!profile;
-  const isAdmin = isSuper || !!profile?.isAdmin;
+  const isAdmin = !!profile?.isAdmin;
 
   useEffect(() => {
     if (loading) return;
