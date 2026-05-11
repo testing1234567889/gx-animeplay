@@ -17,8 +17,10 @@ import { Route as BookmarkRouteImport } from './routes/bookmark'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as ProfileSettingsRouteImport } from './routes/profile.settings'
 import { Route as AnimeAnimeIdRouteImport } from './routes/anime.$animeId'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminAnimesRouteImport } from './routes/admin.animes'
 import { Route as WatchAnimeIdEpisodeIdRouteImport } from './routes/watch.$animeId.$episodeId'
@@ -63,6 +65,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const ProfileSettingsRoute = ProfileSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => ProfileRoute,
+} as any)
 const AnimeAnimeIdRoute = AnimeAnimeIdRouteImport.update({
   id: '/anime/$animeId',
   path: '/anime/$animeId',
@@ -71,6 +78,11 @@ const AnimeAnimeIdRoute = AnimeAnimeIdRouteImport.update({
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
@@ -94,13 +106,15 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/bookmark': typeof BookmarkRoute
   '/login': typeof LoginRoute
-  '/profile': typeof ProfileRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/schedule': typeof ScheduleRoute
   '/upgrade': typeof UpgradeRoute
   '/admin/animes': typeof AdminAnimesRoute
   '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
+  '/profile/settings': typeof ProfileSettingsRoute
   '/admin/': typeof AdminIndexRoute
   '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
 }
@@ -108,13 +122,15 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bookmark': typeof BookmarkRoute
   '/login': typeof LoginRoute
-  '/profile': typeof ProfileRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/schedule': typeof ScheduleRoute
   '/upgrade': typeof UpgradeRoute
   '/admin/animes': typeof AdminAnimesRoute
   '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
+  '/profile/settings': typeof ProfileSettingsRoute
   '/admin': typeof AdminIndexRoute
   '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
 }
@@ -124,13 +140,15 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/bookmark': typeof BookmarkRoute
   '/login': typeof LoginRoute
-  '/profile': typeof ProfileRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/schedule': typeof ScheduleRoute
   '/upgrade': typeof UpgradeRoute
   '/admin/animes': typeof AdminAnimesRoute
   '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
+  '/profile/settings': typeof ProfileSettingsRoute
   '/admin/': typeof AdminIndexRoute
   '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
 }
@@ -146,8 +164,10 @@ export interface FileRouteTypes {
     | '/upgrade'
     | '/admin/animes'
     | '/admin/payments'
+    | '/admin/settings'
     | '/admin/users'
     | '/anime/$animeId'
+    | '/profile/settings'
     | '/admin/'
     | '/watch/$animeId/$episodeId'
   fileRoutesByTo: FileRoutesByTo
@@ -160,8 +180,10 @@ export interface FileRouteTypes {
     | '/upgrade'
     | '/admin/animes'
     | '/admin/payments'
+    | '/admin/settings'
     | '/admin/users'
     | '/anime/$animeId'
+    | '/profile/settings'
     | '/admin'
     | '/watch/$animeId/$episodeId'
   id:
@@ -175,8 +197,10 @@ export interface FileRouteTypes {
     | '/upgrade'
     | '/admin/animes'
     | '/admin/payments'
+    | '/admin/settings'
     | '/admin/users'
     | '/anime/$animeId'
+    | '/profile/settings'
     | '/admin/'
     | '/watch/$animeId/$episodeId'
   fileRoutesById: FileRoutesById
@@ -186,7 +210,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   BookmarkRoute: typeof BookmarkRoute
   LoginRoute: typeof LoginRoute
-  ProfileRoute: typeof ProfileRoute
+  ProfileRoute: typeof ProfileRouteWithChildren
   ScheduleRoute: typeof ScheduleRoute
   UpgradeRoute: typeof UpgradeRoute
   AnimeAnimeIdRoute: typeof AnimeAnimeIdRoute
@@ -251,6 +275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/profile/settings': {
+      id: '/profile/settings'
+      path: '/settings'
+      fullPath: '/profile/settings'
+      preLoaderRoute: typeof ProfileSettingsRouteImport
+      parentRoute: typeof ProfileRoute
+    }
     '/anime/$animeId': {
       id: '/anime/$animeId'
       path: '/anime/$animeId'
@@ -263,6 +294,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/admin/users'
       preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/payments': {
@@ -292,6 +330,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminAnimesRoute: typeof AdminAnimesRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -299,18 +338,30 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAnimesRoute: AdminAnimesRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface ProfileRouteChildren {
+  ProfileSettingsRoute: typeof ProfileSettingsRoute
+}
+
+const ProfileRouteChildren: ProfileRouteChildren = {
+  ProfileSettingsRoute: ProfileSettingsRoute,
+}
+
+const ProfileRouteWithChildren =
+  ProfileRoute._addFileChildren(ProfileRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   BookmarkRoute: BookmarkRoute,
   LoginRoute: LoginRoute,
-  ProfileRoute: ProfileRoute,
+  ProfileRoute: ProfileRouteWithChildren,
   ScheduleRoute: ScheduleRoute,
   UpgradeRoute: UpgradeRoute,
   AnimeAnimeIdRoute: AnimeAnimeIdRoute,

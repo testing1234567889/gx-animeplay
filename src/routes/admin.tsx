@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "../lib/auth-context";
-import { Film, LogOut, ArrowLeft, CreditCard, Users } from "lucide-react";
+import { Film, LogOut, ArrowLeft, CreditCard, Users, Settings } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -12,6 +12,7 @@ const tabs = [
   { to: "/admin/animes", label: "Animes", icon: Film },
   { to: "/admin/payments", label: "Payments", icon: CreditCard },
   { to: "/admin/users", label: "Users", icon: Users },
+  { to: "/admin/settings", label: "Settings", icon: Settings },
 ] as const;
 
 function AdminLayout() {
@@ -88,7 +89,7 @@ function AdminLayout() {
       <Outlet />
 
       <nav className="md:hidden fixed inset-x-0 bottom-0 z-40 glass border-t border-white/10 pb-[env(safe-area-inset-bottom)]">
-        <div className="mx-auto grid max-w-md grid-cols-3">
+        <div className="mx-auto grid max-w-md grid-cols-4">
           {tabs.map((t) => (
             <Link
               key={t.to}

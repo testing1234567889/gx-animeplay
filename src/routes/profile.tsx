@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Bookmark, Crown, History, HelpCircle, LogOut, Shield, ChevronRight, User as UserIcon } from "lucide-react";
+import { Bookmark, Crown, History, HelpCircle, LogOut, Shield, ChevronRight, User as UserIcon, Pencil } from "lucide-react";
 import { useAuth } from "../lib/auth-context";
 import { subscribeHistory, type HistoryItem } from "../lib/history";
+import { getPublicBio } from "../lib/settings";
 import { VipBadge } from "../components/VipBadge";
 
 export const Route = createFileRoute("/profile")({
@@ -15,10 +16,16 @@ const TELEGRAM_HELP_URL = "https://t.me/animeplay_help";
 function ProfilePage() {
   const { user, profile, logout, loading } = useAuth();
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [bio, setBio] = useState<string>("");
 
   useEffect(() => {
     if (!user) return;
     return subscribeHistory(user.uid, setHistory);
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    getPublicBio(user.uid).then(setBio).catch(() => {});
   }, [user]);
 
   if (loading) {
@@ -30,22 +37,36 @@ function ProfilePage() {
   const vip = profile?.status === "vip";
   const pending = profile?.payment_status === "pending";
   const resume = history[0];
+  const displayName = (user.displayName || "").trim() || "Anonym User";
+  const initial = (displayName[0] ?? user.email?.[0] ?? "U").toUpperCase();
 
   return (
-    <main className="mx-auto max-w-md px-4 pt-6 pb-12 animate-fade-in">
-      {/* Header */}
-      <div className="rounded-3xl bg-card p-5 ring-1 ring-white/5">
-        <div className="flex items-center gap-4">
+    <main className="mx-auto max-w-md px-4 pt-6 animate-fade-in">
+      {/* Header — glassmorphism */}
+      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+        <div className="pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/30 blur-3xl" />
+        <div className="relative flex items-center gap-4">
           <div
-            className={"flex h-16 w-16 items-center justify-center rounded-full text-xl font-bold ring-2 " + (vip ? "ring-yellow-400/60" : "ring-white/10")}
+            className={"flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-bold ring-2 " + (vip ? "ring-yellow-400/60" : "ring-white/15")}
             style={vip ? { background: "linear-gradient(135deg,#FDE68A,#F59E0B)", color: "#111" } : { background: "color-mix(in oklab,var(--primary) 25%, transparent)", color: "var(--primary)" }}
           >
-            {(user.email?.[0] ?? "U").toUpperCase()}
+            {initial}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-base font-semibold">{user.email}</div>
-            <div className="mt-1"><VipBadge vip={vip} /></div>
+            <div className="flex items-center gap-2">
+              <span className="truncate text-base font-semibold">{displayName}</span>
+              <VipBadge vip={vip} />
+            </div>
+            <div className="truncate text-xs text-muted-foreground">{user.email}</div>
+            {bio && <p className="mt-1 line-clamp-2 text-xs text-foreground/70">{bio}</p>}
           </div>
+          <Link
+            to="/profile/settings"
+            aria-label="Edit profile"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15 hover:bg-white/15"
+          >
+            <Pencil className="h-4 w-4" />
+          </Link>
         </div>
 
         {pending && (

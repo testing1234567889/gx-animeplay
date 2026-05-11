@@ -10,15 +10,14 @@ const items = [
 
 export function BottomNav() {
   const { pathname } = useLocation();
-  // Hide on admin routes — admin has its own bottom tab bar
-  if (pathname.startsWith("/admin")) return null;
+  if (pathname.startsWith("/admin") || pathname.startsWith("/login") || pathname.startsWith("/watch")) return null;
 
   return (
     <nav
       aria-label="Primary"
       className="fixed bottom-0 left-0 right-0 w-full z-50 border-t border-white/10 bg-background/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)]"
     >
-      <ul className="mx-auto grid max-w-md grid-cols-4">
+      <ul className="mx-auto grid h-16 max-w-md grid-cols-4">
         {items.map((it) => {
           const exact = "exact" in it && it.exact;
           const active = exact ? pathname === it.to : pathname.startsWith(it.to);

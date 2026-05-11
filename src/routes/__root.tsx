@@ -109,13 +109,21 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const { pathname } = useLocation();
   const hideTop = pathname.startsWith("/admin") || pathname.startsWith("/login");
+  const hideBottom = pathname.startsWith("/admin") || pathname.startsWith("/login") || pathname.startsWith("/watch");
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <div onContextMenu={(e) => e.preventDefault()} className="min-h-screen">
+        <div onContextMenu={(e) => e.preventDefault()} className="flex min-h-dvh flex-col">
           <AnnouncementBar />
           {!hideTop && <TopNav />}
-          <main className="pb-24 min-h-screen">
+          <main
+            className="flex-1"
+            style={{
+              paddingBottom: hideBottom
+                ? "env(safe-area-inset-bottom)"
+                : "calc(env(safe-area-inset-bottom) + 64px)",
+            }}
+          >
             <Outlet />
           </main>
           <BottomNav />
