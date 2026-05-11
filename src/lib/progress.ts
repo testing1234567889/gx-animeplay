@@ -73,6 +73,25 @@ export async function dismissReport(id: string) {
   await remove(ref(db, `admin_reports/${id}`));
 }
 
+// ---------- Video Reports ----------
+export async function reportVideo(opts: {
+  animeId: string;
+  episodeId: string;
+  reporterUid: string;
+  reason: string;
+  customText?: string;
+}) {
+  const r = push(ref(db, "admin_video_reports"));
+  await set(r, {
+    anime_id: opts.animeId,
+    episode_id: opts.episodeId,
+    reporter_uid: opts.reporterUid,
+    reason: opts.reason,
+    custom_text: opts.customText ?? "",
+    created_at: Date.now(),
+  });
+}
+
 export async function deleteReportedComment(report: ReportedComment) {
   await remove(ref(db, `comments/${report.episode_id}/${report.comment_id}`));
   // remove all admin reports tied to this comment

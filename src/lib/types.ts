@@ -36,6 +36,7 @@ export type Episode = {
   release_time?: number; // ms epoch when it became released
   skipStart?: number; // seconds
   skipEnd?: number; // seconds
+  download_url?: string;
   ratings?: Record<string, { uid: string; score: number }>;
   created_at?: number;
 };
