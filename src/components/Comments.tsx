@@ -232,7 +232,11 @@ export function Comments({ episodeId, onSeek }: Props) {
               <Flag className="h-3.5 w-3.5 fill-current" />
             </span>
           )}
-          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/20 text-sm font-bold text-primary">
+          <Link
+            to="/user/$userId"
+            params={{ userId: c.uid }}
+            className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/20 text-sm font-bold text-primary hover:ring-2 hover:ring-primary/60 transition"
+          >
             {photoURL ? (
               <img
                 src={photoURL}
@@ -244,7 +248,7 @@ export function Comments({ episodeId, onSeek }: Props) {
             ) : (
               <span>{initial}</span>
             )}
-          </div>
+          </Link>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               {c.pinned && (
@@ -252,7 +256,13 @@ export function Comments({ episodeId, onSeek }: Props) {
                   <Pin className="h-3 w-3" /> Pinned
                 </span>
               )}
-              <span className={"truncate text-sm font-bold " + nameColorFor(author)}>{name}</span>
+              <Link
+                to="/user/$userId"
+                params={{ userId: c.uid }}
+                className={"truncate text-sm font-bold hover:underline " + nameColorFor(author)}
+              >
+                {name}
+              </Link>
               <RoleBadges roles={rolesFromProfile(author)} />
               <span className="text-[11px] text-muted-foreground">{new Date(c.created_at).toLocaleString()}</span>
             </div>
