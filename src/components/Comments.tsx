@@ -140,10 +140,30 @@ export function Comments({ episodeId, onSeek }: Props) {
     for (const arr of byParent.values()) arr.sort((a, b) => a.created_at - b.created_at);
     tops.sort((a, b) => {
       if (!!b.pinned !== !!a.pinned) return b.pinned ? 1 : -1;
+      if (sortMode === "top") {
+        const ar = (byParent.get(a.id)?.length ?? 0);
+        const br = (byParent.get(b.id)?.length ?? 0);
+        if (br !== ar) return br - ar;
+      }
       return b.created_at - a.created_at;
     });
     return { roots: tops, repliesOf: byParent };
-  }, [items]);
+  }, [items, sortMode]);
+
+  // FAB scroll detection — show when user has scrolled past comments top
+  useEffect(() => {
+    const onScroll = () => {
+      const el = sectionRef.current;
+      if (!el) return;
+      const top = el.getBoundingClientRect().top;
+      setShowFab(top < -200);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const totalCount = items?.length ?? 0;
 
   const submit = async (e: FormEvent, parentId: string | null) => {
     e.preventDefault();
