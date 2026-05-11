@@ -30,6 +30,29 @@ function WatchPage() {
     return subscribeEpisodes(animeId, setEpisodes);
   }, [animeId]);
 
+  // Auto-rotate to landscape when entering native iframe fullscreen on mobile
+  useEffect(() => {
+    const handleFullscreenChange = async () => {
+      if (document.fullscreenElement) {
+        const orient = (window.screen as any)?.orientation;
+        if (orient?.lock) {
+          try {
+            await orient.lock("landscape");
+          } catch (error) {
+            console.warn("Screen orientation lock failed or not supported:", error);
+          }
+        }
+      } else {
+        const orient = (window.screen as any)?.orientation;
+        if (orient?.unlock) {
+          try { orient.unlock(); } catch {}
+        }
+      }
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
   const current = useMemo(() => episodes?.find((e) => e.id === episodeId) ?? null, [episodes, episodeId]);
 
   // Back-compat: fall back to legacy fields if new ones are missing.
