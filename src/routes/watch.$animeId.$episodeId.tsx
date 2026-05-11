@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Crown, Lock } from "lucide-react";
+import { Crown, Lock, Play, Loader2 } from "lucide-react";
 import { getAnime, subscribeEpisodes } from "../lib/anime-api";
 import type { Anime, Episode } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
@@ -87,14 +87,19 @@ function WatchPage() {
     return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
   };
 
+  const [playerLoading, setPlayerLoading] = useState(true);
+  useEffect(() => { setPlayerLoading(true); }, [server, episodeId]);
+
   const renderPlayer = () => {
     if (!current) return null;
+    const onLoad = () => setPlayerLoading(false);
     if (server === "s1" && s1Data)
       return (
         <iframe
           src={`https://geo.dailymotion.com/player/xid0t.html?video=${s1Data}&autoplay=0`}
           allow="autoplay; fullscreen; picture-in-picture; web-share"
           allowFullScreen
+          onLoad={onLoad}
           className="w-full h-full absolute inset-0"
           frameBorder="0"
           title="Server 1"
@@ -105,22 +110,37 @@ function WatchPage() {
         <iframe
           src={`https://ok.ru/videoembed/${s2Data}`}
           allowFullScreen
+          onLoad={onLoad}
           className="w-full h-full absolute inset-0"
           frameBorder="0"
           title="Server 2"
         />
       );
-    if (server === "s3" && s3Data)
+    if (server === "s3" && s3Data) {
+      const isMp4 = s3Data.toLowerCase().split("?")[0].endsWith(".mp4");
+      if (isMp4) {
+        return (
+          <video
+            src={s3Data}
+            controls
+            onLoadedData={onLoad}
+            onCanPlay={onLoad}
+            className="w-full h-full absolute inset-0 bg-black"
+          />
+        );
+      }
       return (
         <iframe
           src={s3Data}
           allow="autoplay; fullscreen; picture-in-picture"
           allowFullScreen
+          onLoad={onLoad}
           className="w-full h-full absolute inset-0"
           frameBorder="0"
           title="Server 3"
         />
       );
+    }
     return (
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
         <div className="mb-2 text-3xl">📡</div>
