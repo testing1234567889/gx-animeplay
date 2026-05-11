@@ -45,6 +45,10 @@ function AdminSettings() {
 
   const saveAnn = async (e: FormEvent) => {
     e.preventDefault();
+    if (ann.href && !/^https?:\/\//i.test(ann.href)) {
+      toast.error("Link must start with https://");
+      return;
+    }
     setBusyAnn(true);
     try {
       await setAnnouncement(ann);

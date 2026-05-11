@@ -107,7 +107,8 @@ export function Comments({ episodeId }: { episodeId: string }) {
     const author = roleMap[c.uid];
     const name = author?.displayName?.trim() || c.email?.split("@")[0] || "user";
     const initial = (name[0] ?? "?").toUpperCase();
-    const photoURL = author?.photoURL || "";
+    const rawPhoto = author?.photoURL || "";
+    const photoURL = /^https:\/\//i.test(rawPhoto) ? rawPhoto : "";
     const canDelete = !!user && (user.uid === c.uid || isAdmin);
     const replies = repliesOf.get(c.id) ?? [];
 

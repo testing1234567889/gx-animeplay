@@ -45,6 +45,10 @@ function ProfileEditPage() {
     const n = name.trim().slice(0, MAX_NAME);
     const b = bio.trim().slice(0, MAX_BIO);
     const a = avatar.trim();
+    if (a && !/^https:\/\//i.test(a)) {
+      toast.error("Avatar URL must start with https://");
+      return;
+    }
     setBusy(true);
     try {
       await updateProfile(auth.currentUser, { displayName: n, photoURL: a || null });
