@@ -12,11 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UpgradeRouteImport } from './routes/upgrade'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ScheduleRouteImport } from './routes/schedule'
-import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as BookmarkRouteImport } from './routes/bookmark'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProfileIndexRouteImport } from './routes/profile.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as ProfileSettingsRouteImport } from './routes/profile.settings'
 import { Route as ProfileHistoryRouteImport } from './routes/profile.history'
@@ -43,11 +43,6 @@ const ScheduleRoute = ScheduleRouteImport.update({
   path: '/schedule',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -66,6 +61,11 @@ const AdminRoute = AdminRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileIndexRoute = ProfileIndexRouteImport.update({
+  id: '/profile/',
+  path: '/profile/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -124,7 +124,6 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/bookmark': typeof BookmarkRoute
   '/login': typeof LoginRoute
-  '/profile': typeof ProfileRouteWithChildren
   '/schedule': typeof ScheduleRoute
   '/search': typeof SearchRoute
   '/upgrade': typeof UpgradeRoute
@@ -137,13 +136,13 @@ export interface FileRoutesByFullPath {
   '/profile/history': typeof ProfileHistoryRoute
   '/profile/settings': typeof ProfileSettingsRoute
   '/admin/': typeof AdminIndexRoute
+  '/profile/': typeof ProfileIndexRoute
   '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bookmark': typeof BookmarkRoute
   '/login': typeof LoginRoute
-  '/profile': typeof ProfileRouteWithChildren
   '/schedule': typeof ScheduleRoute
   '/search': typeof SearchRoute
   '/upgrade': typeof UpgradeRoute
@@ -156,6 +155,7 @@ export interface FileRoutesByTo {
   '/profile/history': typeof ProfileHistoryRoute
   '/profile/settings': typeof ProfileSettingsRoute
   '/admin': typeof AdminIndexRoute
+  '/profile': typeof ProfileIndexRoute
   '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
 }
 export interface FileRoutesById {
@@ -164,7 +164,6 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/bookmark': typeof BookmarkRoute
   '/login': typeof LoginRoute
-  '/profile': typeof ProfileRouteWithChildren
   '/schedule': typeof ScheduleRoute
   '/search': typeof SearchRoute
   '/upgrade': typeof UpgradeRoute
@@ -177,6 +176,7 @@ export interface FileRoutesById {
   '/profile/history': typeof ProfileHistoryRoute
   '/profile/settings': typeof ProfileSettingsRoute
   '/admin/': typeof AdminIndexRoute
+  '/profile/': typeof ProfileIndexRoute
   '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
 }
 export interface FileRouteTypes {
@@ -186,7 +186,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/bookmark'
     | '/login'
-    | '/profile'
     | '/schedule'
     | '/search'
     | '/upgrade'
@@ -199,13 +198,13 @@ export interface FileRouteTypes {
     | '/profile/history'
     | '/profile/settings'
     | '/admin/'
+    | '/profile/'
     | '/watch/$animeId/$episodeId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/bookmark'
     | '/login'
-    | '/profile'
     | '/schedule'
     | '/search'
     | '/upgrade'
@@ -218,6 +217,7 @@ export interface FileRouteTypes {
     | '/profile/history'
     | '/profile/settings'
     | '/admin'
+    | '/profile'
     | '/watch/$animeId/$episodeId'
   id:
     | '__root__'
@@ -225,7 +225,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/bookmark'
     | '/login'
-    | '/profile'
     | '/schedule'
     | '/search'
     | '/upgrade'
@@ -238,6 +237,7 @@ export interface FileRouteTypes {
     | '/profile/history'
     | '/profile/settings'
     | '/admin/'
+    | '/profile/'
     | '/watch/$animeId/$episodeId'
   fileRoutesById: FileRoutesById
 }
@@ -246,11 +246,11 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   BookmarkRoute: typeof BookmarkRoute
   LoginRoute: typeof LoginRoute
-  ProfileRoute: typeof ProfileRouteWithChildren
   ScheduleRoute: typeof ScheduleRoute
   SearchRoute: typeof SearchRoute
   UpgradeRoute: typeof UpgradeRoute
   AnimeAnimeIdRoute: typeof AnimeAnimeIdRoute
+  ProfileIndexRoute: typeof ProfileIndexRoute
   WatchAnimeIdEpisodeIdRoute: typeof WatchAnimeIdEpisodeIdRoute
 }
 
@@ -275,13 +275,6 @@ declare module '@tanstack/react-router' {
       path: '/schedule'
       fullPath: '/schedule'
       preLoaderRoute: typeof ScheduleRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -310,6 +303,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/': {
+      id: '/profile/'
+      path: '/profile'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof ProfileIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -403,33 +403,28 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
-interface ProfileRouteChildren {
-  ProfileEditRoute: typeof ProfileEditRoute
-  ProfileHistoryRoute: typeof ProfileHistoryRoute
-  ProfileSettingsRoute: typeof ProfileSettingsRoute
-}
-
-const ProfileRouteChildren: ProfileRouteChildren = {
-  ProfileEditRoute: ProfileEditRoute,
-  ProfileHistoryRoute: ProfileHistoryRoute,
-  ProfileSettingsRoute: ProfileSettingsRoute,
-}
-
-const ProfileRouteWithChildren =
-  ProfileRoute._addFileChildren(ProfileRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   BookmarkRoute: BookmarkRoute,
   LoginRoute: LoginRoute,
-  ProfileRoute: ProfileRouteWithChildren,
   ScheduleRoute: ScheduleRoute,
   SearchRoute: SearchRoute,
   UpgradeRoute: UpgradeRoute,
   AnimeAnimeIdRoute: AnimeAnimeIdRoute,
+  ProfileIndexRoute: ProfileIndexRoute,
   WatchAnimeIdEpisodeIdRoute: WatchAnimeIdEpisodeIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
