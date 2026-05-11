@@ -426,6 +426,8 @@ function EpisodesManager({ anime }: { anime: Anime }) {
         server3_name: form.server3_name,
         vip_only: form.vip_only,
         release_time: release_ms,
+        skipStart: form.skipStart ? Number(form.skipStart) : 0,
+        skipEnd: form.skipEnd ? Number(form.skipEnd) : 0,
       };
       if (editing) {
         await updateEpisode(editing.id, payload);
