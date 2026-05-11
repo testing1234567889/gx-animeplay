@@ -36,6 +36,7 @@ export type UserProfile = {
   banned?: boolean;
   ban_reason?: string;
   payment_status?: "none" | "pending" | "approved" | "rejected";
+  isAdmin?: boolean;
   created_at?: number;
 };
 
@@ -55,7 +56,6 @@ export type Comment = {
   id: string;
   uid: string;
   email?: string;
-  status?: "free" | "vip";
   text: string;
   created_at: number;
 };
