@@ -4,6 +4,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
+  sendEmailVerification,
   signOut,
   type User,
 } from "firebase/auth";
@@ -56,6 +57,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signup = async (email: string, password: string) => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await ensureUserProfile(cred.user.uid, cred.user.email);
+    try {
+      await sendEmailVerification(cred.user);
+    } catch (e) {
+      console.error("sendEmailVerification failed", e);
+    }
   };
   const resetPassword = async (email: string) => {
     await sendPasswordResetEmail(auth, email);
