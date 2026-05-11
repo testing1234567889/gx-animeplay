@@ -175,3 +175,16 @@
 .no-scrollbar { scrollbar-width: none; }
 
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+.input {
+  width: 100%;
+  border-radius: 0.5rem;
+  background: color-mix(in oklab, var(--color-input) 40%, transparent);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, white 10%, transparent);
+}
+.input:focus {
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+}

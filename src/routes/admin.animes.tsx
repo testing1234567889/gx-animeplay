@@ -1,25 +1,59 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { toast } from "sonner";
-import { createAnime, deleteAnime, subscribeAnimes, updateAnime } from "../lib/anime-api";
-import type { Anime } from "../lib/types";
+import {
+  createAnime,
+  deleteAnime,
+  subscribeAnimes,
+  updateAnime,
+  subscribeEpisodes,
+  createEpisode,
+  updateEpisode,
+  deleteEpisode,
+} from "../lib/anime-api";
+import type { Anime, Episode } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
-import { Pencil, Trash2, Plus, X } from "lucide-react";
+import { Pencil, Trash2, Plus, X, ListVideo } from "lucide-react";
 
 export const Route = createFileRoute("/admin/animes")({
   component: AnimesAdmin,
 });
 
-type FormState = { title: string; description: string; poster_url: string };
-const empty: FormState = { title: "", description: "", poster_url: "" };
+type AnimeForm = {
+  title: string;
+  description: string;
+  poster_url: string;
+  banner_url: string;
+  type: string;
+  status: string;
+  latest_ep: string;
+  isTrending: boolean;
+  isLatest: boolean;
+  isMovie: boolean;
+  isUpcoming: boolean;
+};
+
+const emptyAnime: AnimeForm = {
+  title: "",
+  description: "",
+  poster_url: "",
+  banner_url: "",
+  type: "Donghua",
+  status: "Ongoing",
+  latest_ep: "",
+  isTrending: false,
+  isLatest: false,
+  isMovie: false,
+  isUpcoming: false,
+};
 
 function AnimesAdmin() {
   const [animes, setAnimes] = useState<Anime[] | null>(null);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Anime | null>(null);
-  const [form, setForm] = useState<FormState>(empty);
+  const [form, setForm] = useState<AnimeForm>(emptyAnime);
   const [busy, setBusy] = useState(false);
+  const [episodesFor, setEpisodesFor] = useState<Anime | null>(null);
 
   useEffect(() => {
     const unsub = subscribeAnimes((list) => {
@@ -31,12 +65,24 @@ function AnimesAdmin() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm(empty);
+    setForm(emptyAnime);
     setOpen(true);
   };
   const openEdit = (a: Anime) => {
     setEditing(a);
-    setForm({ title: a.title, description: a.description ?? "", poster_url: a.poster_url ?? "" });
+    setForm({
+      title: a.title ?? "",
+      description: a.description ?? "",
+      poster_url: a.poster_url ?? "",
+      banner_url: a.banner_url ?? "",
+      type: a.type ?? "Donghua",
+      status: a.status ?? "Ongoing",
+      latest_ep: a.latest_ep != null ? String(a.latest_ep) : "",
+      isTrending: !!a.isTrending,
+      isLatest: !!a.isLatest,
+      isMovie: !!a.isMovie,
+      isUpcoming: !!a.isUpcoming,
+    });
     setOpen(true);
   };
 
@@ -44,11 +90,12 @@ function AnimesAdmin() {
     e.preventDefault();
     setBusy(true);
     try {
+      const payload = { ...form, latest_ep: form.latest_ep || "" };
       if (editing) {
-        await updateAnime(editing.id, form);
+        await updateAnime(editing.id, payload);
         toast.success("Anime updated");
       } else {
-        await createAnime(form);
+        await createAnime(payload);
         toast.success("Anime created");
       }
       setOpen(false);
@@ -94,14 +141,35 @@ function AnimesAdmin() {
       ) : (
         <ul className="space-y-2">
           {animes.map((a) => (
-            <li key={a.id} className="flex items-center gap-3 rounded-xl bg-card p-3 ring-1 ring-white/5">
+            <li
+              key={a.id}
+              className="flex items-center gap-3 rounded-xl bg-card p-3 ring-1 ring-white/5"
+            >
               <div className="h-14 w-10 shrink-0 overflow-hidden rounded-md bg-white/5">
-                {a.poster_url && <img src={a.poster_url} alt="" className="h-full w-full object-cover" />}
+                {a.poster_url && (
+                  <img src={a.poster_url} alt="" className="h-full w-full object-cover" />
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="truncate font-medium">{a.title}</div>
-                <div className="truncate text-xs text-muted-foreground">{a.description || "No description"}</div>
+                <div className="truncate text-xs text-muted-foreground">
+                  {a.type || "—"} · {a.status || "—"}
+                  {a.latest_ep ? ` · Ep ${a.latest_ep}` : ""}
+                </div>
               </div>
+              <button
+                onClick={() => setEpisodesFor(a)}
+                className="hidden sm:inline-flex items-center gap-1 rounded-lg bg-primary/15 px-2.5 py-1.5 text-xs font-medium text-primary hover:bg-primary/25"
+              >
+                <ListVideo className="h-3.5 w-3.5" /> Episodes
+              </button>
+              <button
+                onClick={() => setEpisodesFor(a)}
+                className="sm:hidden rounded-lg p-2 text-primary hover:bg-primary/10"
+                aria-label="Episodes"
+              >
+                <ListVideo className="h-4 w-4" />
+              </button>
               <button
                 onClick={() => openEdit(a)}
                 className="rounded-lg p-2 text-muted-foreground hover:bg-white/5 hover:text-foreground"
@@ -121,71 +189,350 @@ function AnimesAdmin() {
         </ul>
       )}
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 p-0 md:p-4"
-            onClick={() => setOpen(false)}
-          >
-            <motion.form
-              initial={{ y: 30, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 30, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              onSubmit={onSubmit}
-              className="w-full max-w-lg rounded-t-2xl md:rounded-2xl bg-card p-5 ring-1 ring-white/10"
-            >
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-lg font-semibold">{editing ? "Edit Anime" : "New Anime"}</h3>
-                <button type="button" onClick={() => setOpen(false)} className="rounded-md p-1 hover:bg-white/5">
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              <Field label="Title">
-                <input
-                  required
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  className="w-full rounded-lg bg-input/40 px-3 py-2 text-sm outline-none ring-1 ring-white/10 focus:ring-primary"
-                />
-              </Field>
-              <Field label="Description">
-                <textarea
-                  rows={3}
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  className="w-full rounded-lg bg-input/40 px-3 py-2 text-sm outline-none ring-1 ring-white/10 focus:ring-primary"
-                />
-              </Field>
-              <Field label="Poster URL">
-                <input
-                  value={form.poster_url}
-                  onChange={(e) => setForm({ ...form, poster_url: e.target.value })}
-                  placeholder="https://…"
-                  className="w-full rounded-lg bg-input/40 px-3 py-2 text-sm outline-none ring-1 ring-white/10 focus:ring-primary"
-                />
-              </Field>
-
-              <button
-                type="submit"
-                disabled={busy}
-                className="mt-4 w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+      {/* Anime form modal */}
+      <Modal open={open} onClose={() => setOpen(false)} title={editing ? "Edit Anime" : "New Anime"}>
+        <form onSubmit={onSubmit}>
+          <Field label="Title">
+            <input
+              required
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              className="input"
+            />
+          </Field>
+          <Field label="Description">
+            <textarea
+              rows={3}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className="input"
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Poster URL">
+              <input
+                value={form.poster_url}
+                onChange={(e) => setForm({ ...form, poster_url: e.target.value })}
+                className="input"
+              />
+            </Field>
+            <Field label="Banner URL">
+              <input
+                value={form.banner_url}
+                onChange={(e) => setForm({ ...form, banner_url: e.target.value })}
+                className="input"
+              />
+            </Field>
+            <Field label="Type">
+              <select
+                value={form.type}
+                onChange={(e) => setForm({ ...form, type: e.target.value })}
+                className="input"
               >
-                {busy ? "Saving…" : editing ? "Save changes" : "Create anime"}
-              </button>
-            </motion.form>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                <option>Donghua</option>
+                <option>Anime</option>
+                <option>Movie</option>
+                <option>OVA</option>
+                <option>TV</option>
+              </select>
+            </Field>
+            <Field label="Status">
+              <select
+                value={form.status}
+                onChange={(e) => setForm({ ...form, status: e.target.value })}
+                className="input"
+              >
+                <option>Ongoing</option>
+                <option>Completed</option>
+                <option>Upcoming</option>
+              </select>
+            </Field>
+            <Field label="Latest Episode">
+              <input
+                value={form.latest_ep}
+                onChange={(e) => setForm({ ...form, latest_ep: e.target.value })}
+                placeholder="e.g. 140"
+                className="input"
+              />
+            </Field>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {(["isTrending", "isLatest", "isMovie", "isUpcoming"] as const).map((k) => (
+              <label
+                key={k}
+                className="flex cursor-pointer items-center gap-2 rounded-lg bg-input/40 px-2.5 py-2 text-xs ring-1 ring-white/10"
+              >
+                <input
+                  type="checkbox"
+                  checked={form[k]}
+                  onChange={(e) => setForm({ ...form, [k]: e.target.checked })}
+                />
+                {k.replace("is", "")}
+              </label>
+            ))}
+          </div>
+
+          <button
+            type="submit"
+            disabled={busy}
+            className="mt-5 w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+          >
+            {busy ? "Saving…" : editing ? "Save changes" : "Create anime"}
+          </button>
+        </form>
+      </Modal>
+
+      {/* Episodes manager modal */}
+      <Modal
+        open={!!episodesFor}
+        onClose={() => setEpisodesFor(null)}
+        title={episodesFor ? `Episodes — ${episodesFor.title}` : ""}
+        wide
+      >
+        {episodesFor && <EpisodesManager anime={episodesFor} />}
+      </Modal>
     </div>
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+/* ------------ Episodes Manager (nested) ------------ */
+
+type EpForm = { number: string; title: string; dailymotion_id: string; okru_id: string };
+const emptyEp: EpForm = { number: "", title: "", dailymotion_id: "", okru_id: "" };
+
+function EpisodesManager({ anime }: { anime: Anime }) {
+  const [eps, setEps] = useState<Episode[] | null>(null);
+  const [editing, setEditing] = useState<Episode | null>(null);
+  const [form, setForm] = useState<EpForm>(emptyEp);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    setEps(null);
+    return subscribeEpisodes(anime.id, setEps);
+  }, [anime.id]);
+
+  const reset = () => {
+    setEditing(null);
+    setForm(emptyEp);
+  };
+
+  const onSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const payload = {
+        anime_id: anime.id,
+        number: Number(form.number) || 0,
+        title: form.title,
+        dailymotion_id: form.dailymotion_id,
+        okru_id: form.okru_id,
+      };
+      if (editing) {
+        await updateEpisode(editing.id, payload);
+        toast.success("Episode updated");
+      } else {
+        await createEpisode(payload);
+        toast.success("Episode added");
+      }
+      reset();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to save");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onDelete = async (ep: Episode) => {
+    if (!confirm(`Delete episode ${ep.number}?`)) return;
+    try {
+      await deleteEpisode(ep.id);
+      toast.success("Deleted");
+      if (editing?.id === ep.id) reset();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Delete failed");
+    }
+  };
+
+  return (
+    <div className="grid gap-4 md:grid-cols-[1fr_1fr]">
+      {/* List */}
+      <div className="max-h-[50vh] overflow-y-auto pr-1">
+        {eps === null ? (
+          <div className="space-y-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : eps.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-xs text-muted-foreground">
+            No episodes yet.
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {eps.map((ep) => (
+              <li
+                key={ep.id}
+                className="flex items-center gap-2 rounded-lg bg-card p-2 ring-1 ring-white/5"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/20 text-xs font-bold text-primary">
+                  {ep.number}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium">
+                    {ep.title || `Episode ${ep.number}`}
+                  </div>
+                  <div className="truncate text-[11px] text-muted-foreground">
+                    DM: {ep.dailymotion_id || "—"} · OK: {ep.okru_id || "—"}
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setEditing(ep);
+                    setForm({
+                      number: String(ep.number ?? ""),
+                      title: ep.title ?? "",
+                      dailymotion_id: ep.dailymotion_id ?? "",
+                      okru_id: ep.okru_id ?? "",
+                    });
+                  }}
+                  className="rounded p-1.5 text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                  aria-label="Edit"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={() => onDelete(ep)}
+                  className="rounded p-1.5 text-muted-foreground hover:bg-destructive/20 hover:text-destructive"
+                  aria-label="Delete"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Form */}
+      <form onSubmit={onSubmit} className="rounded-xl bg-background/40 p-3 ring-1 ring-white/5">
+        <div className="mb-2 flex items-center justify-between">
+          <h4 className="text-sm font-semibold">
+            {editing ? `Edit Episode ${editing.number}` : "Add Episode"}
+          </h4>
+          {editing && (
+            <button
+              type="button"
+              onClick={reset}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Cancel edit
+            </button>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="Number">
+            <input
+              required
+              type="number"
+              min={0}
+              value={form.number}
+              onChange={(e) => setForm({ ...form, number: e.target.value })}
+              className="input"
+            />
+          </Field>
+          <Field label="Title">
+            <input
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              className="input"
+            />
+          </Field>
+        </div>
+        <Field label="Dailymotion ID">
+          <input
+            value={form.dailymotion_id}
+            onChange={(e) => setForm({ ...form, dailymotion_id: e.target.value })}
+            placeholder="x8abcde"
+            className="input"
+          />
+        </Field>
+        <Field label="OK.RU ID">
+          <input
+            value={form.okru_id}
+            onChange={(e) => setForm({ ...form, okru_id: e.target.value })}
+            placeholder="1234567890123"
+            className="input"
+          />
+        </Field>
+        <button
+          type="submit"
+          disabled={busy}
+          className="mt-2 w-full rounded-lg bg-primary py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+        >
+          {busy ? "Saving…" : editing ? "Save changes" : "Add Episode"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+/* ------------ Shared bits ------------ */
+
+function Modal({
+  open,
+  onClose,
+  title,
+  children,
+  wide,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  children: ReactNode;
+  wide?: boolean;
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 animate-fade-in"
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className={
+          "relative max-h-[90vh] w-full overflow-y-auto rounded-2xl bg-card p-5 ring-1 ring-white/10 shadow-2xl " +
+          (wide ? "max-w-3xl" : "max-w-lg")
+        }
+      >
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h3 className="text-lg font-semibold">{title}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md p-1 hover:bg-white/5"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="mb-3">
       <label className="mb-1 block text-xs font-medium text-muted-foreground">{label}</label>

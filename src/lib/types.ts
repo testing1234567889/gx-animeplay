@@ -3,6 +3,14 @@ export type Anime = {
   title: string;
   description?: string;
   poster_url?: string;
+  banner_url?: string;
+  type?: string; // e.g. "Donghua", "Movie", "TV"
+  status?: string; // "Ongoing" | "Completed"
+  latest_ep?: string | number;
+  isTrending?: boolean;
+  isLatest?: boolean;
+  isMovie?: boolean;
+  isUpcoming?: boolean;
   created_at?: number;
 };
 

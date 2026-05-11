@@ -1,8 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { subscribeAnimes } from "../lib/anime-api";
 import type { Anime } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
+import { HeroSlider } from "../components/HeroSlider";
+import { AnimeRow } from "../components/AnimeRow";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -13,32 +15,6 @@ export const Route = createFileRoute("/")({
   }),
   component: Home,
 });
-
-function PosterCard({ a }: { a: Anime }) {
-  return (
-    <Link
-      to="/anime/$animeId"
-      params={{ animeId: a.id }}
-      className="group block transition-transform duration-200 active:scale-95 hover:scale-103"
-    >
-      <div className="aspect-[2/3] overflow-hidden rounded-xl bg-card ring-1 ring-white/5 transition group-hover:ring-primary/40">
-        {a.poster_url ? (
-          <img
-            src={a.poster_url}
-            alt={a.title}
-            loading="lazy"
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
-            No poster
-          </div>
-        )}
-      </div>
-      <div className="mt-2 line-clamp-2 text-sm font-medium text-foreground">{a.title}</div>
-    </Link>
-  );
-}
 
 function Home() {
   const [animes, setAnimes] = useState<Anime[] | null>(null);
@@ -51,73 +27,50 @@ function Home() {
     return unsub;
   }, []);
 
-  const featured = animes?.[0];
+  const sections = useMemo(() => {
+    const all = animes ?? [];
+    return {
+      trending: all.filter((a) => a.isTrending),
+      latest: all.filter((a) => a.isLatest),
+      movies: all.filter((a) => a.isMovie),
+      upcoming: all.filter((a) => a.isUpcoming),
+    };
+  }, [animes]);
+
+  const heroItems = sections.trending.length ? sections.trending : (animes?.slice(0, 5) ?? []);
 
   return (
-    <main className="mx-auto max-w-7xl px-4 pb-32 pt-6">
-      {featured ? (
-        <section className="relative mb-8 overflow-hidden rounded-2xl ring-1 ring-white/10 animate-fade-in">
-          <div className="aspect-[16/9] md:aspect-[21/9] w-full">
-            {featured.poster_url ? (
-              <img src={featured.poster_url} alt={featured.title} className="h-full w-full object-cover" />
-            ) : (
-              <div className="h-full w-full bg-card" />
-            )}
-          </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 p-5 md:p-8">
-            <h1 className="text-2xl md:text-4xl font-bold tracking-tight">{featured.title}</h1>
-            {featured.description && (
-              <p className="mt-2 max-w-2xl text-sm text-muted-foreground line-clamp-2">{featured.description}</p>
-            )}
-            <Link
-              to="/anime/$animeId"
-              params={{ animeId: featured.id }}
-              className="mt-4 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-            >
-              Watch Now
-            </Link>
-          </div>
-        </section>
+    <main className="mx-auto max-w-7xl px-4 pb-32 pt-4">
+      {animes === null ? (
+        <Skeleton className="mb-6 aspect-[16/9] md:aspect-[21/9] w-full" />
       ) : (
-        <Skeleton className="mb-8 aspect-[16/9] md:aspect-[21/9] w-full" />
+        <HeroSlider items={heroItems} />
       )}
 
-      <section>
-        <div className="mb-3 flex items-end justify-between">
-          <h2 className="text-lg font-semibold">Recently Added</h2>
-          <span className="text-xs text-muted-foreground">{animes?.length ?? ""} titles</span>
+      {animes === null ? (
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <Skeleton key={i} className="aspect-[2/3] w-full" />
+          ))}
         </div>
-
-        {animes === null ? (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <Skeleton key={i} className="aspect-[2/3] w-full" />
-            ))}
-          </div>
-        ) : animes.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-white/10 p-10 text-center text-sm text-muted-foreground">
-            No anime yet. Open <span className="font-mono text-primary">/admin</span> to add some.
-          </div>
-        ) : (
-          <>
-            <div className="md:hidden -mx-4 overflow-x-auto no-scrollbar px-4">
-              <div className="flex gap-3 snap-x snap-mandatory">
-                {animes.map((a) => (
-                  <div key={a.id} className="w-36 shrink-0 snap-start">
-                    <PosterCard a={a} />
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="hidden md:grid grid-cols-3 gap-4 md:grid-cols-4 lg:grid-cols-6">
-              {animes.map((a) => (
-                <PosterCard key={a.id} a={a} />
-              ))}
-            </div>
-          </>
-        )}
-      </section>
+      ) : animes.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-white/10 p-10 text-center text-sm text-muted-foreground">
+          No anime yet. Open <span className="font-mono text-primary">/admin</span> to add some.
+        </div>
+      ) : (
+        <>
+          <AnimeRow title="Terpopuler Hari Ini" items={sections.trending} />
+          <AnimeRow title="Rilisan Terbaru" items={sections.latest} />
+          <AnimeRow title="Movie" items={sections.movies} />
+          <AnimeRow title="Upcoming Donghua" items={sections.upcoming} />
+          {sections.trending.length === 0 &&
+            sections.latest.length === 0 &&
+            sections.movies.length === 0 &&
+            sections.upcoming.length === 0 && (
+              <AnimeRow title="All Anime" items={animes} />
+            )}
+        </>
+      )}
     </main>
   );
 }
