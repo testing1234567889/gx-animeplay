@@ -69,6 +69,14 @@ Firebase SDK directly. You MUST deploy these rules in the Firebase Console
         ".read":  "auth != null && auth.uid === $uid",
         ".write": "auth != null && auth.uid === $uid"
       }
+    },
+
+    "users_public": {
+      "$uid": {
+        ".read": true,
+        ".write": "auth != null && auth.uid === $uid",
+        "bio": { ".validate": "newData.isString() && newData.val().length <= 160" }
+      }
     }
   }
 }
