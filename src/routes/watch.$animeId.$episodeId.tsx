@@ -129,7 +129,7 @@ function WatchPage() {
         {current && (<><span className="mx-2">/</span><span className="text-foreground">Episode {current.number}</span></>)}
       </div>
 
-      <div className="overflow-hidden rounded-2xl bg-black ring-1 ring-white/10">
+      <div ref={playerContainerRef} className="relative group w-full overflow-hidden rounded-2xl bg-black ring-1 ring-white/10">
         <div className="relative aspect-video w-full">
           {!current ? (
             <Skeleton className="absolute inset-0 rounded-none" />
