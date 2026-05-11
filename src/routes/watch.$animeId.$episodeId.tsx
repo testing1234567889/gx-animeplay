@@ -115,15 +115,12 @@ function WatchPage() {
               </Link>
             </div>
           ) : embedUrl ? (
-            <iframe
+            <div
               key={embedUrl}
-              src={embedUrl}
-              title="Dailymotion Player"
-              frameBorder="0"
-              allow="autoplay; fullscreen; picture-in-picture"
-              allowFullScreen
-              {...({ webkitallowfullscreen: "true", mozallowfullscreen: "true" } as any)}
-              className="absolute top-0 left-0 w-full h-full border-0"
+              className="absolute inset-0"
+              dangerouslySetInnerHTML={{
+                __html: `<iframe src="${embedUrl}" width="100%" height="100%" style="position:absolute;top:0;left:0;border:0;" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>`,
+              }}
             />
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
