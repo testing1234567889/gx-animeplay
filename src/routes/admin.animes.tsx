@@ -624,6 +624,28 @@ function EpisodesManager({ anime }: { anime: Anime }) {
             className="input"
           />
         </Field>
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="Skip Intro Start (sec)">
+            <input
+              type="number"
+              min={0}
+              value={form.skipStart}
+              onChange={(e) => setForm({ ...form, skipStart: e.target.value })}
+              placeholder="e.g. 30"
+              className="input"
+            />
+          </Field>
+          <Field label="Skip Intro End (sec)">
+            <input
+              type="number"
+              min={0}
+              value={form.skipEnd}
+              onChange={(e) => setForm({ ...form, skipEnd: e.target.value })}
+              placeholder="e.g. 90"
+              className="input"
+            />
+          </Field>
+        </div>
         <label className="mb-3 flex cursor-pointer items-center gap-2 rounded-lg bg-input/40 px-3 py-2 text-xs ring-1 ring-yellow-400/30">
           <input
             type="checkbox"
