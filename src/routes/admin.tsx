@@ -15,17 +15,28 @@ const tabs = [
 ] as const;
 
 function AdminLayout() {
-  const { user, loading, logout } = useAuth();
+  const { user, profile, loading, logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/login" });
-  }, [loading, user, navigate]);
+    if (loading) return;
+    if (!user) navigate({ to: "/login" });
+    else if (profile && !profile.isAdmin) navigate({ to: "/" });
+  }, [loading, user, profile, navigate]);
 
-  if (loading || !user) {
+  if (loading || !user || !profile) {
     return (
       <main className="flex min-h-[60vh] items-center justify-center text-sm text-muted-foreground">
         Checking session…
+      </main>
+    );
+  }
+
+  if (!profile.isAdmin) {
+    return (
+      <main className="flex min-h-[60vh] flex-col items-center justify-center gap-2 text-center px-6">
+        <h1 className="text-xl font-bold">Admin access required</h1>
+        <p className="text-sm text-muted-foreground">Your account does not have admin privileges.</p>
       </main>
     );
   }

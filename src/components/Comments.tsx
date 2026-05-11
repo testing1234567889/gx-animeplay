@@ -26,7 +26,6 @@ export function Comments({ episodeId }: { episodeId: string }) {
       await addComment(episodeId, {
         uid: user.uid,
         email: user.email ?? "",
-        status: profile?.status ?? "free",
         text: t,
       });
       setText("");
