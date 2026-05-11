@@ -112,14 +112,16 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AnnouncementBar />
-        {!hideTop && <TopNav />}
-        <div key={pathname} className="animate-fade-in pb-24">
-          <Outlet />
+        <div onContextMenu={(e) => e.preventDefault()} className="min-h-screen">
+          <AnnouncementBar />
+          {!hideTop && <TopNav />}
+          <main className="pb-24 min-h-screen">
+            <Outlet />
+          </main>
+          <BottomNav />
+          <BannedOverlay />
+          <Toaster theme="dark" position="top-center" richColors />
         </div>
-        <BottomNav />
-        <BannedOverlay />
-        <Toaster theme="dark" position="top-center" richColors />
       </AuthProvider>
     </QueryClientProvider>
   );
