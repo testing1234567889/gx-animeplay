@@ -375,6 +375,7 @@ type EpForm = {
   release_time: string;
   skipStart: string;
   skipEnd: string;
+  download_url: string;
 };
 const emptyEp: EpForm = {
   number: "", title: "",
@@ -383,6 +384,7 @@ const emptyEp: EpForm = {
   server3_data: "", server3_name: "",
   vip_only: false, release_time: "",
   skipStart: "", skipEnd: "",
+  download_url: "",
 };
 
 function toLocalInput(ms?: number) {
