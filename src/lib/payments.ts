@@ -6,12 +6,13 @@ import type { Payment } from "./types";
 export const DANA_NUMBER = "082293633547";
 export const VIP_PRICE = 50000;
 
-export async function submitPayment(args: { uid: string; email?: string; proof_url: string; amount?: number }) {
+export async function submitPayment(args: { uid: string; email?: string; proof_url: string }) {
   const r = push(ref(db, "payments"));
+  // Amount is fixed server-side via Firebase Security Rules; client never supplies it.
   const payload: Omit<Payment, "id"> = {
     uid: args.uid,
     email: args.email,
-    amount: args.amount ?? VIP_PRICE,
+    amount: VIP_PRICE,
     proof_url: args.proof_url,
     status: "pending",
     created_at: Date.now(),
