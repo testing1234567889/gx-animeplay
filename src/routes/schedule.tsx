@@ -40,6 +40,19 @@ function normalize(d?: string) {
   return map[s] ?? s;
 }
 
+const DAY_NUM: Record<string, number> = {
+  monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6, sunday: 7,
+};
+
+function smartEp(a: Anime): string {
+  const cur = parseInt(String(a.latest_ep ?? "").replace(/\D/g, ""), 10) || 0;
+  const today = ((new Date().getDay() + 6) % 7) + 1; // Mon=1..Sun=7
+  const sched = DAY_NUM[normalize(a.schedule_day)] ?? 0;
+  if (!sched) return cur ? `Ep ${cur}` : "";
+  const n = sched > today ? cur + 1 : cur;
+  return `Ep ${n}`;
+}
+
 function SchedulePage() {
   const [animes, setAnimes] = useState<Anime[] | null>(null);
   const [activeDay, setActiveDay] = useState<string>(todayFull());
@@ -96,7 +109,7 @@ function SchedulePage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {filtered.map((a) => (
-            <AnimeCard key={a.id} a={a} />
+            <AnimeCard key={a.id} a={a} latestEpOverride={smartEp(a)} />
           ))}
         </div>
       )}

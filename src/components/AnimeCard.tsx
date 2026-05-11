@@ -6,9 +6,9 @@ import { useAuth } from "../lib/auth-context";
 import { addBookmark, removeBookmark, isBookmarkedOnce } from "../lib/bookmarks";
 import { toast } from "sonner";
 
-type Props = { a: Anime; showBookmark?: boolean };
+type Props = { a: Anime; showBookmark?: boolean; latestEpOverride?: string };
 
-export function AnimeCard({ a, showBookmark = true }: Props) {
+export function AnimeCard({ a, showBookmark = true, latestEpOverride }: Props) {
   const { user } = useAuth();
   const [bm, setBm] = useState(false);
 
@@ -82,9 +82,9 @@ export function AnimeCard({ a, showBookmark = true }: Props) {
         )}
 
         {/* Bottom-Left: latest ep */}
-        {a.latest_ep != null && a.latest_ep !== "" && (
+        {(latestEpOverride ?? (a.latest_ep != null && a.latest_ep !== "" ? String(a.latest_ep) : "")) && (
           <span className="absolute bottom-1.5 left-1.5 rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground shadow">
-            {a.latest_ep}
+            {latestEpOverride ?? a.latest_ep}
           </span>
         )}
 
