@@ -19,6 +19,8 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as ProfileSettingsRouteImport } from './routes/profile.settings'
+import { Route as ProfileHistoryRouteImport } from './routes/profile.history'
+import { Route as ProfileEditRouteImport } from './routes/profile.edit'
 import { Route as AnimeAnimeIdRouteImport } from './routes/anime.$animeId'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
@@ -76,6 +78,16 @@ const ProfileSettingsRoute = ProfileSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => ProfileRoute,
 } as any)
+const ProfileHistoryRoute = ProfileHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => ProfileRoute,
+} as any)
+const ProfileEditRoute = ProfileEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => ProfileRoute,
+} as any)
 const AnimeAnimeIdRoute = AnimeAnimeIdRouteImport.update({
   id: '/anime/$animeId',
   path: '/anime/$animeId',
@@ -121,6 +133,8 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
+  '/profile/edit': typeof ProfileEditRoute
+  '/profile/history': typeof ProfileHistoryRoute
   '/profile/settings': typeof ProfileSettingsRoute
   '/admin/': typeof AdminIndexRoute
   '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
@@ -138,6 +152,8 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
+  '/profile/edit': typeof ProfileEditRoute
+  '/profile/history': typeof ProfileHistoryRoute
   '/profile/settings': typeof ProfileSettingsRoute
   '/admin': typeof AdminIndexRoute
   '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
@@ -157,6 +173,8 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
+  '/profile/edit': typeof ProfileEditRoute
+  '/profile/history': typeof ProfileHistoryRoute
   '/profile/settings': typeof ProfileSettingsRoute
   '/admin/': typeof AdminIndexRoute
   '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
@@ -177,6 +195,8 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/anime/$animeId'
+    | '/profile/edit'
+    | '/profile/history'
     | '/profile/settings'
     | '/admin/'
     | '/watch/$animeId/$episodeId'
@@ -194,6 +214,8 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/anime/$animeId'
+    | '/profile/edit'
+    | '/profile/history'
     | '/profile/settings'
     | '/admin'
     | '/watch/$animeId/$episodeId'
@@ -212,6 +234,8 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/anime/$animeId'
+    | '/profile/edit'
+    | '/profile/history'
     | '/profile/settings'
     | '/admin/'
     | '/watch/$animeId/$episodeId'
@@ -302,6 +326,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileSettingsRouteImport
       parentRoute: typeof ProfileRoute
     }
+    '/profile/history': {
+      id: '/profile/history'
+      path: '/history'
+      fullPath: '/profile/history'
+      preLoaderRoute: typeof ProfileHistoryRouteImport
+      parentRoute: typeof ProfileRoute
+    }
+    '/profile/edit': {
+      id: '/profile/edit'
+      path: '/edit'
+      fullPath: '/profile/edit'
+      preLoaderRoute: typeof ProfileEditRouteImport
+      parentRoute: typeof ProfileRoute
+    }
     '/anime/$animeId': {
       id: '/anime/$animeId'
       path: '/anime/$animeId'
@@ -366,10 +404,14 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface ProfileRouteChildren {
+  ProfileEditRoute: typeof ProfileEditRoute
+  ProfileHistoryRoute: typeof ProfileHistoryRoute
   ProfileSettingsRoute: typeof ProfileSettingsRoute
 }
 
 const ProfileRouteChildren: ProfileRouteChildren = {
+  ProfileEditRoute: ProfileEditRoute,
+  ProfileHistoryRoute: ProfileHistoryRoute,
   ProfileSettingsRoute: ProfileSettingsRoute,
 }
 
