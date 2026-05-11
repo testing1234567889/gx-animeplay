@@ -53,6 +53,7 @@ export function AnimeCard({ a, showBookmark = true }: Props) {
             src={a.poster_url}
             alt={a.title}
             loading="lazy"
+            referrerPolicy="no-referrer"
             className="h-full w-full object-cover"
           />
         ) : (
