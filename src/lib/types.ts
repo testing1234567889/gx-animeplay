@@ -13,6 +13,8 @@ export type Anime = {
   isUpcoming?: boolean;
   schedule_day?: string;
   genres?: string[];
+  globalRating?: number;
+  ratingCount?: number;
   created_at?: number;
 };
 
