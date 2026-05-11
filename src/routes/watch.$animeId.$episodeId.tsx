@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Crown, Lock } from "lucide-react";
+import { Crown, Lock, Maximize, Minimize } from "lucide-react";
 import { getAnime, subscribeEpisodes } from "../lib/anime-api";
 import type { Anime, Episode } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
@@ -25,6 +25,30 @@ function WatchPage() {
   const [server, setServer] = useState<ServerKey>("dm");
   const [now, setNow] = useState(Date.now());
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const playerContainerRef = useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onChange);
+    document.addEventListener("webkitfullscreenchange", onChange as any);
+    return () => {
+      document.removeEventListener("fullscreenchange", onChange);
+      document.removeEventListener("webkitfullscreenchange", onChange as any);
+    };
+  }, []);
+
+  const toggleFullscreen = () => {
+    const elem: any = playerContainerRef.current;
+    if (!elem) return;
+    if (!document.fullscreenElement) {
+      if (elem.requestFullscreen) elem.requestFullscreen();
+      else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+      else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+    } else {
+      if (document.exitFullscreen) document.exitFullscreen();
+    }
+  };
 
   useEffect(() => {
     getAnime(animeId).then(setAnime);
@@ -105,7 +129,7 @@ function WatchPage() {
         {current && (<><span className="mx-2">/</span><span className="text-foreground">Episode {current.number}</span></>)}
       </div>
 
-      <div className="overflow-hidden rounded-2xl bg-black ring-1 ring-white/10">
+      <div ref={playerContainerRef} className="relative group w-full overflow-hidden rounded-2xl bg-black ring-1 ring-white/10">
         <div className="relative aspect-video w-full">
           {!current ? (
             <Skeleton className="absolute inset-0 rounded-none" />
@@ -140,7 +164,7 @@ function WatchPage() {
               src={embedUrl}
               className="absolute top-0 left-0 h-full w-full border-0"
               frameBorder="0"
-              allow="fullscreen; picture-in-picture"
+              allow="autoplay; fullscreen; picture-in-picture"
               allowFullScreen={true}
               title="Video Player"
             />
@@ -155,25 +179,35 @@ function WatchPage() {
       </div>
 
       {current && !locked && (
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="mr-2 text-xs uppercase tracking-wider text-muted-foreground">Server</span>
-          {([
-            { k: "dm" as const, label: "Server 1 (DM)", available: !!current.dailymotion_id },
-            { k: "okru" as const, label: "Server 2 (OK)", available: !!current.okru_id },
-          ]).map((s) => (
-            <button
-              key={s.k}
-              disabled={!s.available}
-              onClick={() => setServer(s.k)}
-              className={
-                "rounded-xl px-4 py-2 text-sm font-medium transition glass " +
-                (server === s.k ? "bg-primary/20 text-foreground ring-1 ring-primary" : "text-muted-foreground hover:text-foreground") +
-                (!s.available ? " opacity-40 cursor-not-allowed" : "")
-              }
-            >
-              {s.label}
-            </button>
-          ))}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="mr-2 text-xs uppercase tracking-wider text-muted-foreground">Server</span>
+            {([
+              { k: "dm" as const, label: "Server 1 (DM)", available: !!current.dailymotion_id },
+              { k: "okru" as const, label: "Server 2 (OK)", available: !!current.okru_id },
+            ]).map((s) => (
+              <button
+                key={s.k}
+                disabled={!s.available}
+                onClick={() => setServer(s.k)}
+                className={
+                  "rounded-xl px-4 py-2 text-sm font-medium transition glass " +
+                  (server === s.k ? "bg-primary/20 text-foreground ring-1 ring-primary" : "text-muted-foreground hover:text-foreground") +
+                  (!s.available ? " opacity-40 cursor-not-allowed" : "")
+                }
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={toggleFullscreen}
+            title="Full Screen"
+            aria-label="Full Screen"
+            className="p-2.5 rounded-lg bg-slate-800 hover:bg-cyan-900 border border-slate-700 text-cyan-400 transition-all"
+          >
+            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+          </button>
         </div>
       )}
 
