@@ -37,6 +37,8 @@ export type UserProfile = {
   ban_reason?: string;
   payment_status?: "none" | "pending" | "approved" | "rejected";
   isAdmin?: boolean;
+  isModerator?: boolean;
+  isBeta?: boolean;
   created_at?: number;
 };
 
