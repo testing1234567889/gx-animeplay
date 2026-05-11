@@ -6,7 +6,7 @@ import { subscribeHistory, type HistoryItem } from "../lib/history";
 import { getPublicBio } from "../lib/settings";
 import { RoleBadges, rolesFromProfile } from "../components/RoleBadges";
 
-export const Route = createFileRoute("/profile")({
+export const Route = createFileRoute("/profile/")({
   component: ProfilePage,
   head: () => ({ meta: [{ title: "Profile — AnimePlay" }] }),
 });
