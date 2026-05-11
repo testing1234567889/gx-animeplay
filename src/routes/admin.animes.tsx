@@ -634,6 +634,23 @@ function EpisodesManager({ anime }: { anime: Anime }) {
           {busy ? "Saving…" : editing ? "Save changes" : "Add Episode"}
         </button>
       </form>
+
+      <AlertDialog open={!!confirmEp} onOpenChange={(o) => !o && setConfirmEp(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this episode?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Episode {confirmEp?.number} will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={doDeleteEp} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
