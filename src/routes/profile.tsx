@@ -1,10 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Bookmark, Crown, History, HelpCircle, LogOut, Shield, ChevronRight, User as UserIcon, Pencil } from "lucide-react";
+import { useEffect, useState, type FormEvent } from "react";
+import { Bookmark, Crown, History, HelpCircle, LogOut, Shield, ChevronRight, User as UserIcon, Pencil, X, Save } from "lucide-react";
+import { updateProfile } from "firebase/auth";
+import { toast } from "sonner";
 import { useAuth } from "../lib/auth-context";
+import { auth } from "../lib/firebase";
 import { subscribeHistory, type HistoryItem } from "../lib/history";
-import { getPublicBio } from "../lib/settings";
+import { getPublicBio, setPublicBio } from "../lib/settings";
 import { VipBadge } from "../components/VipBadge";
+
+const ADMIN_EMAIL = "husain2hasan4@gmail.com";
 
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
