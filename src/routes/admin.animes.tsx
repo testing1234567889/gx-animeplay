@@ -299,6 +299,14 @@ function AnimesAdmin() {
               </select>
             </Field>
           </div>
+          <Field label="Genres (comma-separated)">
+            <input
+              value={form.genres}
+              onChange={(e) => setForm({ ...form, genres: e.target.value })}
+              placeholder="Action, Fantasy, Adventure"
+              className="input"
+            />
+          </Field>
           <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
             {(["isTrending", "isLatest", "isMovie", "isUpcoming"] as const).map((k) => (
               <label
@@ -334,6 +342,23 @@ function AnimesAdmin() {
       >
         {episodesFor && <EpisodesManager anime={episodesFor} />}
       </Modal>
+
+      <AlertDialog open={!!confirmAnime} onOpenChange={(o) => !o && setConfirmAnime(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this anime?</AlertDialogTitle>
+            <AlertDialogDescription>
+              "{confirmAnime?.title}" and all of its episodes will be permanently removed. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={doDeleteAnime} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
