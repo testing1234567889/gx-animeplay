@@ -53,10 +53,19 @@ function ProfilePage() {
         <div className="pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/30 blur-3xl" />
         <div className="relative flex items-center gap-4">
           <div
-            className={"flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-bold ring-2 " + (vip ? "ring-yellow-400/60" : "ring-white/15")}
+            className={"relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full text-xl font-bold ring-2 " + (vip ? "ring-yellow-400/60" : "ring-white/15")}
             style={vip ? { background: "linear-gradient(135deg,#FDE68A,#F59E0B)", color: "#111" } : { background: "color-mix(in oklab,var(--primary) 25%, transparent)", color: "var(--primary)" }}
           >
-            {initial}
+            {user.photoURL ? (
+              <img
+                src={user.photoURL}
+                alt={displayName}
+                referrerPolicy="no-referrer"
+                className="absolute inset-0 h-full w-full object-cover"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+              />
+            ) : null}
+            <span className="relative">{initial}</span>
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
@@ -175,8 +184,9 @@ function ProfilePage() {
           uid={user.uid}
           initialName={user.displayName ?? ""}
           initialBio={bio}
+          initialAvatar={user.photoURL ?? ""}
           onClose={() => setEditOpen(false)}
-          onSaved={(n, b) => setBio(b)}
+          onSaved={(_n, b) => setBio(b)}
         />
       )}
     </main>
@@ -184,16 +194,18 @@ function ProfilePage() {
 }
 
 function EditProfileModal({
-  uid, initialName, initialBio, onClose, onSaved,
+  uid, initialName, initialBio, initialAvatar, onClose, onSaved,
 }: {
   uid: string;
   initialName: string;
   initialBio: string;
+  initialAvatar: string;
   onClose: () => void;
   onSaved: (name: string, bio: string) => void;
 }) {
   const [name, setName] = useState(initialName);
   const [bio, setBioVal] = useState(initialBio);
+  const [avatar, setAvatar] = useState(initialAvatar);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -215,9 +227,10 @@ function EditProfileModal({
     if (!auth.currentUser) return;
     const n = name.trim().slice(0, 32);
     const b = bio.trim().slice(0, 160);
+    const a = avatar.trim();
     setBusy(true);
     try {
-      await updateProfile(auth.currentUser, { displayName: n });
+      await updateProfile(auth.currentUser, { displayName: n, photoURL: a || null });
       await setPublicBio(uid, b);
       onSaved(n, b);
       toast.success("Profile updated");
@@ -231,13 +244,13 @@ function EditProfileModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
     >
       <form
         onClick={(e) => e.stopPropagation()}
         onSubmit={onSubmit}
-        className="relative w-full sm:max-w-md overflow-hidden rounded-t-3xl sm:rounded-3xl border border-white/10 bg-slate-950/95 p-5 backdrop-blur-xl"
+        className="relative w-full max-w-sm p-6 bg-slate-900 rounded-xl shadow-2xl m-4 border border-slate-800 max-h-[90vh] overflow-y-auto"
       >
         <div className="pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/30 blur-3xl" />
         <div className="relative mb-4 flex items-center justify-between">
@@ -245,6 +258,22 @@ function EditProfileModal({
           <button type="button" onClick={onClose} aria-label="Close" className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15">
             <X className="h-4 w-4" />
           </button>
+        </div>
+
+        <div className="relative mb-4 flex justify-center">
+          <div className="relative h-20 w-20 overflow-hidden rounded-full ring-2 ring-white/15 bg-white/5 flex items-center justify-center text-2xl font-bold text-primary">
+            {avatar ? (
+              <img
+                src={avatar}
+                alt="Avatar preview"
+                referrerPolicy="no-referrer"
+                className="absolute inset-0 h-full w-full object-cover"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+              />
+            ) : (
+              <UserIcon className="h-8 w-8" />
+            )}
+          </div>
         </div>
 
         <label className="relative block">
@@ -260,6 +289,18 @@ function EditProfileModal({
             <span>Synced to Firebase Auth</span>
             <span>{name.length}/32</span>
           </div>
+        </label>
+
+        <label className="relative mt-4 block">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Avatar URL (Optional)</span>
+          <input
+            value={avatar}
+            onChange={(e) => setAvatar(e.target.value)}
+            type="url"
+            placeholder="https://example.com/me.jpg"
+            className="input mt-1.5"
+          />
+          <div className="mt-1 text-[11px] text-muted-foreground">Paste an image link (JPG, PNG, GIF)</div>
         </label>
 
         <label className="relative mt-4 block">
