@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Bookmark, Crown, History, HelpCircle, LogOut, Shield, ChevronRight, User as UserIcon } from "lucide-react";
+import { Bookmark, Crown, History, HelpCircle, LogOut, Shield, ChevronRight, User as UserIcon, Pencil } from "lucide-react";
 import { useAuth } from "../lib/auth-context";
 import { subscribeHistory, type HistoryItem } from "../lib/history";
+import { getPublicBio } from "../lib/settings";
 import { VipBadge } from "../components/VipBadge";
 
 export const Route = createFileRoute("/profile")({
