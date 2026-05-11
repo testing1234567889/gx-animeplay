@@ -321,8 +321,15 @@ function AnimesAdmin() {
 
 /* ------------ Episodes Manager (nested) ------------ */
 
-type EpForm = { number: string; title: string; dailymotion_id: string; okru_id: string };
-const emptyEp: EpForm = { number: "", title: "", dailymotion_id: "", okru_id: "" };
+type EpForm = { number: string; title: string; dailymotion_id: string; okru_id: string; vip_only: boolean; release_time: string };
+const emptyEp: EpForm = { number: "", title: "", dailymotion_id: "", okru_id: "", vip_only: false, release_time: "" };
+
+function toLocalInput(ms?: number) {
+  if (!ms) return "";
+  const d = new Date(ms);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 function EpisodesManager({ anime }: { anime: Anime }) {
   const [eps, setEps] = useState<Episode[] | null>(null);
@@ -345,12 +352,15 @@ function EpisodesManager({ anime }: { anime: Anime }) {
     setBusy(true);
     try {
       const num = Number(form.number) || 0;
+      const release_ms = form.release_time ? new Date(form.release_time).getTime() : Date.now();
       const payload = {
         anime_id: anime.id,
         number: num,
         title: form.title,
         dailymotion_id: form.dailymotion_id,
         okru_id: form.okru_id,
+        vip_only: form.vip_only,
+        release_time: release_ms,
       };
       if (editing) {
         await updateEpisode(editing.id, payload);
@@ -423,6 +433,8 @@ function EpisodesManager({ anime }: { anime: Anime }) {
                       title: ep.title ?? "",
                       dailymotion_id: ep.dailymotion_id ?? "",
                       okru_id: ep.okru_id ?? "",
+                      vip_only: !!ep.vip_only,
+                      release_time: toLocalInput(ep.release_time),
                     });
                   }}
                   className="rounded p-1.5 text-muted-foreground hover:bg-white/5 hover:text-foreground"
@@ -494,6 +506,23 @@ function EpisodesManager({ anime }: { anime: Anime }) {
             className="input"
           />
         </Field>
+        <Field label="Release Time (basis for VIP early-access timer)">
+          <input
+            type="datetime-local"
+            value={form.release_time}
+            onChange={(e) => setForm({ ...form, release_time: e.target.value })}
+            className="input"
+          />
+        </Field>
+        <label className="mb-3 flex cursor-pointer items-center gap-2 rounded-lg bg-input/40 px-3 py-2 text-xs ring-1 ring-yellow-400/30">
+          <input
+            type="checkbox"
+            checked={form.vip_only}
+            onChange={(e) => setForm({ ...form, vip_only: e.target.checked })}
+          />
+          <span className="font-semibold text-yellow-300">VIP Only</span>
+          <span className="text-muted-foreground">— free users wait 30 min from release</span>
+        </label>
         <button
           type="submit"
           disabled={busy}
