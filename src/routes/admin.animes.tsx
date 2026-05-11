@@ -373,6 +373,8 @@ type EpForm = {
   server3_data: string; server3_name: string;
   vip_only: boolean;
   release_time: string;
+  skipStart: string;
+  skipEnd: string;
 };
 const emptyEp: EpForm = {
   number: "", title: "",
@@ -380,6 +382,7 @@ const emptyEp: EpForm = {
   server2_data: "", server2_name: "",
   server3_data: "", server3_name: "",
   vip_only: false, release_time: "",
+  skipStart: "", skipEnd: "",
 };
 
 function toLocalInput(ms?: number) {
@@ -423,6 +426,8 @@ function EpisodesManager({ anime }: { anime: Anime }) {
         server3_name: form.server3_name,
         vip_only: form.vip_only,
         release_time: release_ms,
+        skipStart: form.skipStart ? Number(form.skipStart) : 0,
+        skipEnd: form.skipEnd ? Number(form.skipEnd) : 0,
       };
       if (editing) {
         await updateEpisode(editing.id, payload);
@@ -504,6 +509,8 @@ function EpisodesManager({ anime }: { anime: Anime }) {
                       server3_name: ep.server3_name ?? "",
                       vip_only: !!ep.vip_only,
                       release_time: toLocalInput(ep.release_time),
+                      skipStart: ep.skipStart != null ? String(ep.skipStart) : "",
+                      skipEnd: ep.skipEnd != null ? String(ep.skipEnd) : "",
                     });
                   }}
                   className="rounded p-1.5 text-muted-foreground hover:bg-white/5 hover:text-foreground"
@@ -617,6 +624,28 @@ function EpisodesManager({ anime }: { anime: Anime }) {
             className="input"
           />
         </Field>
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="Skip Intro Start (sec)">
+            <input
+              type="number"
+              min={0}
+              value={form.skipStart}
+              onChange={(e) => setForm({ ...form, skipStart: e.target.value })}
+              placeholder="e.g. 30"
+              className="input"
+            />
+          </Field>
+          <Field label="Skip Intro End (sec)">
+            <input
+              type="number"
+              min={0}
+              value={form.skipEnd}
+              onChange={(e) => setForm({ ...form, skipEnd: e.target.value })}
+              placeholder="e.g. 90"
+              className="input"
+            />
+          </Field>
+        </div>
         <label className="mb-3 flex cursor-pointer items-center gap-2 rounded-lg bg-input/40 px-3 py-2 text-xs ring-1 ring-yellow-400/30">
           <input
             type="checkbox"

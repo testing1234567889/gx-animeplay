@@ -13,6 +13,8 @@ export type Anime = {
   isUpcoming?: boolean;
   schedule_day?: string;
   genres?: string[];
+  globalRating?: number;
+  ratingCount?: number;
   created_at?: number;
 };
 
@@ -31,6 +33,9 @@ export type Episode = {
   server3_name?: string;
   vip_only?: boolean;
   release_time?: number; // ms epoch when it became released
+  skipStart?: number; // seconds
+  skipEnd?: number; // seconds
+  ratings?: Record<string, { uid: string; score: number }>;
   created_at?: number;
 };
 
@@ -47,6 +52,7 @@ export type UserProfile = {
   isAdmin?: boolean;
   isModerator?: boolean;
   isBeta?: boolean;
+  watchProgress?: Record<string, { lastMinute: number; percentage: number; updated_at?: number }>;
   created_at?: number;
 };
 
@@ -70,6 +76,20 @@ export type Comment = {
   created_at: number;
   pinned?: boolean;
   parent_id?: string | null;
+  isSpoiler?: boolean;
+  reports?: Record<string, boolean>; // uid -> true
+};
+
+export type ReportedComment = {
+  id: string;
+  episode_id: string;
+  comment_id: string;
+  reporter_uid: string;
+  reason: string;
+  custom_text?: string;
+  text_snippet: string;
+  comment_uid: string;
+  created_at: number;
 };
 
 export type Announcement = {

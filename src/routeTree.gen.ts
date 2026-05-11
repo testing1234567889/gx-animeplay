@@ -25,6 +25,7 @@ import { Route as ProfileEditRouteImport } from './routes/profile.edit'
 import { Route as AnimeAnimeIdRouteImport } from './routes/anime.$animeId'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminAnimesRouteImport } from './routes/admin.animes'
 import { Route as WatchAnimeIdEpisodeIdRouteImport } from './routes/watch.$animeId.$episodeId'
@@ -109,6 +110,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminReportsRoute = AdminReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
   id: '/payments',
   path: '/payments',
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/upgrade': typeof UpgradeRoute
   '/admin/animes': typeof AdminAnimesRoute
   '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
@@ -155,6 +162,7 @@ export interface FileRoutesByTo {
   '/upgrade': typeof UpgradeRoute
   '/admin/animes': typeof AdminAnimesRoute
   '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
@@ -177,6 +185,7 @@ export interface FileRoutesById {
   '/upgrade': typeof UpgradeRoute
   '/admin/animes': typeof AdminAnimesRoute
   '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
@@ -200,6 +209,7 @@ export interface FileRouteTypes {
     | '/upgrade'
     | '/admin/animes'
     | '/admin/payments'
+    | '/admin/reports'
     | '/admin/settings'
     | '/admin/users'
     | '/anime/$animeId'
@@ -219,6 +229,7 @@ export interface FileRouteTypes {
     | '/upgrade'
     | '/admin/animes'
     | '/admin/payments'
+    | '/admin/reports'
     | '/admin/settings'
     | '/admin/users'
     | '/anime/$animeId'
@@ -240,6 +251,7 @@ export interface FileRouteTypes {
     | '/upgrade'
     | '/admin/animes'
     | '/admin/payments'
+    | '/admin/reports'
     | '/admin/settings'
     | '/admin/users'
     | '/anime/$animeId'
@@ -378,6 +390,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/reports': {
+      id: '/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/payments': {
       id: '/admin/payments'
       path: '/payments'
@@ -405,6 +424,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminAnimesRoute: typeof AdminAnimesRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
+  AdminReportsRoute: typeof AdminReportsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -413,6 +433,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAnimesRoute: AdminAnimesRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
+  AdminReportsRoute: AdminReportsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,

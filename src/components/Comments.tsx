@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { ref, get } from "firebase/database";
-import { Pin, Reply as ReplyIcon, Trash2 } from "lucide-react";
+import { Pin, Reply as ReplyIcon, Trash2, Flag, EyeOff } from "lucide-react";
 import { db } from "../lib/firebase";
 import { useAuth } from "../lib/auth-context";
 import {
@@ -11,17 +11,90 @@ import {
   deleteComment,
   setCommentPinned,
 } from "../lib/comments";
+import { reportComment } from "../lib/progress";
 import type { Comment, UserProfile } from "../lib/types";
 import { RoleBadges, rolesFromProfile } from "./RoleBadges";
 import { Skeleton } from "./Skeleton";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "./ui/dialog";
 
-export function Comments({ episodeId }: { episodeId: string }) {
+type Props = {
+  episodeId: string;
+  onSeek?: (seconds: number) => void;
+};
+
+const REASONS = ["Spam", "Pornography", "Promotion", "Other"] as const;
+type Reason = (typeof REASONS)[number];
+
+// Hours-aware mm:ss / hh:mm:ss timestamp parser
+const TS_RE = /\b(?:(\d{1,2}):)?([0-5]?\d):([0-5]\d)\b/g;
+function parseTs(text: string): number | null {
+  const m = /^(?:(\d{1,2}):)?([0-5]?\d):([0-5]\d)$/.exec(text);
+  if (!m) return null;
+  const h = m[1] ? Number(m[1]) : 0;
+  const mm = Number(m[2]);
+  const ss = Number(m[3]);
+  return h * 3600 + mm * 60 + ss;
+}
+
+function nameColorFor(p?: UserProfile | null): string {
+  if (!p) return "text-foreground";
+  if (p.isAdmin) return "text-red-500";
+  if (p.isModerator) return "text-green-500";
+  if (p.status === "vip") return "text-yellow-500";
+  if (p.isBeta) return "text-purple-400";
+  return "text-foreground";
+}
+
+function CommentText({
+  text,
+  onSeek,
+}: { text: string; onSeek?: (s: number) => void }) {
+  const parts = useMemo(() => {
+    const out: Array<{ t: "text" | "ts"; v: string; sec?: number }> = [];
+    let last = 0;
+    const re = new RegExp(TS_RE.source, "g");
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(text))) {
+      if (m.index > last) out.push({ t: "text", v: text.slice(last, m.index) });
+      const sec = parseTs(m[0]);
+      if (sec != null) out.push({ t: "ts", v: m[0], sec });
+      else out.push({ t: "text", v: m[0] });
+      last = m.index + m[0].length;
+    }
+    if (last < text.length) out.push({ t: "text", v: text.slice(last) });
+    return out;
+  }, [text]);
+
+  return (
+    <>
+      {parts.map((p, i) =>
+        p.t === "ts" ? (
+          <span
+            key={i}
+            onClick={() => onSeek?.(p.sec!)}
+            className="text-blue-500 hover:underline cursor-pointer font-medium"
+          >
+            {p.v}
+          </span>
+        ) : (
+          <span key={i}>{p.v}</span>
+        ),
+      )}
+    </>
+  );
+}
+
+export function Comments({ episodeId, onSeek }: Props) {
   const { user, profile } = useAuth();
   const [items, setItems] = useState<Comment[] | null>(null);
   const [text, setText] = useState("");
+  const [isSpoiler, setIsSpoiler] = useState(false);
   const [busy, setBusy] = useState(false);
   const [roleMap, setRoleMap] = useState<Record<string, UserProfile>>({});
   const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [reportFor, setReportFor] = useState<Comment | null>(null);
 
   const isAdmin = !!profile?.isAdmin;
 
@@ -48,7 +121,6 @@ export function Comments({ episodeId }: { episodeId: string }) {
     return () => { cancelled = true; };
   }, [items, roleMap]);
 
-  // Group: pinned top-level first (newest), then top-level newest. Replies attached.
   const { roots, repliesOf } = useMemo(() => {
     const list = items ?? [];
     const byParent = new Map<string, Comment[]>();
@@ -62,7 +134,6 @@ export function Comments({ episodeId }: { episodeId: string }) {
         tops.push(c);
       }
     }
-    // sort replies oldest-first inside a thread
     for (const arr of byParent.values()) arr.sort((a, b) => a.created_at - b.created_at);
     tops.sort((a, b) => {
       if (!!b.pinned !== !!a.pinned) return b.pinned ? 1 : -1;
@@ -84,8 +155,10 @@ export function Comments({ episodeId }: { episodeId: string }) {
         email: user.email ?? "",
         text: t,
         parent_id: parentId,
-      });
+        isSpoiler,
+      } as any);
       setText("");
+      setIsSpoiler(false);
       setReplyTo(null);
     } catch (err: any) {
       toast.error(err?.message ?? "Failed");
@@ -111,9 +184,10 @@ export function Comments({ episodeId }: { episodeId: string }) {
     const photoURL = /^https:\/\//i.test(rawPhoto) ? rawPhoto : "";
     const canDelete = !!user && (user.uid === c.uid || isAdmin);
     const replies = repliesOf.get(c.id) ?? [];
+    const reportedByMe = !!user && !!c.reports && !!c.reports[user.uid];
 
     return (
-      <li key={c.id} className={isReply ? "" : ""}>
+      <li key={c.id}>
         <div className={"flex gap-3 rounded-xl p-3 ring-1 " + (c.pinned ? "bg-primary/10 ring-primary/30" : "bg-card ring-white/5")}>
           <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/20 text-sm font-bold text-primary">
             {photoURL ? (
@@ -135,11 +209,24 @@ export function Comments({ episodeId }: { episodeId: string }) {
                   <Pin className="h-3 w-3" /> Pinned
                 </span>
               )}
-              <span className="truncate text-sm font-semibold">{name}</span>
+              <span className={"truncate text-sm font-bold " + nameColorFor(author)}>{name}</span>
               <RoleBadges roles={rolesFromProfile(author)} />
               <span className="text-[11px] text-muted-foreground">{new Date(c.created_at).toLocaleString()}</span>
             </div>
-            <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/90">{c.text}</p>
+            {c.isSpoiler ? (
+              <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/90 blur-md cursor-pointer transition-all hover:blur-none active:blur-none select-none">
+                <CommentText text={c.text} onSeek={onSeek} />
+              </p>
+            ) : (
+              <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/90">
+                <CommentText text={c.text} onSeek={onSeek} />
+              </p>
+            )}
+            {c.isSpoiler && (
+              <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                <EyeOff className="h-3 w-3" /> Spoiler — tap to reveal
+              </span>
+            )}
             <div className="mt-2 flex items-center gap-3 text-xs">
               {!isReply && user && (
                 <button
@@ -155,6 +242,21 @@ export function Comments({ episodeId }: { episodeId: string }) {
                   className="inline-flex items-center gap-1 text-muted-foreground hover:text-primary"
                 >
                   <Pin className="h-3.5 w-3.5" /> {c.pinned ? "Unpin" : "Pin"}
+                </button>
+              )}
+              {user && user.uid !== c.uid && (
+                <button
+                  onClick={() => !reportedByMe && setReportFor(c)}
+                  disabled={reportedByMe}
+                  title={reportedByMe ? "You already reported this" : "Report"}
+                  className={
+                    "inline-flex items-center gap-1 " +
+                    (reportedByMe
+                      ? "text-muted-foreground/40 cursor-not-allowed"
+                      : "text-muted-foreground hover:text-amber-400")
+                  }
+                >
+                  <Flag className="h-3.5 w-3.5" /> {reportedByMe ? "Reported" : "Report"}
                 </button>
               )}
               {canDelete && (
@@ -177,13 +279,23 @@ export function Comments({ episodeId }: { episodeId: string }) {
                   className="input resize-none"
                   maxLength={500}
                 />
-                <div className="mt-2 flex items-center justify-end gap-2">
-                  <button type="button" onClick={() => { setReplyTo(null); setText(""); }} className="text-xs text-muted-foreground hover:text-foreground">
-                    Cancel
-                  </button>
-                  <button type="submit" disabled={busy || !text.trim()} className="rounded-lg bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60">
-                    {busy ? "Posting…" : "Reply"}
-                  </button>
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                  <label className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      checked={isSpoiler}
+                      onChange={(e) => setIsSpoiler(e.target.checked)}
+                    />
+                    Mark as spoiler
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <button type="button" onClick={() => { setReplyTo(null); setText(""); }} className="text-xs text-muted-foreground hover:text-foreground">
+                      Cancel
+                    </button>
+                    <button type="submit" disabled={busy || !text.trim()} className="rounded-lg bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60">
+                      {busy ? "Posting…" : "Reply"}
+                    </button>
+                  </div>
                 </div>
               </form>
             )}
@@ -191,7 +303,7 @@ export function Comments({ episodeId }: { episodeId: string }) {
         </div>
 
         {!isReply && replies.length > 0 && (
-          <ul className="mt-2 ml-8 space-y-2 border-l-2 border-white/10 pl-3">
+          <ul className="mt-2 ml-4 md:ml-8 space-y-2 border-l-2 border-white/10 pl-3">
             {replies.map((r) => renderItem(r, true))}
           </ul>
         )}
@@ -213,15 +325,25 @@ export function Comments({ episodeId }: { episodeId: string }) {
               className="input resize-none"
               maxLength={500}
             />
-            <div className="mt-2 flex items-center justify-between">
-              <span className="text-[11px] text-muted-foreground">{text.length}/500</span>
-              <button
-                type="submit"
-                disabled={busy || !text.trim()}
-                className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
-              >
-                {busy ? "Posting…" : "Post"}
-              </button>
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+              <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={isSpoiler}
+                  onChange={(e) => setIsSpoiler(e.target.checked)}
+                />
+                Mark as spoiler
+              </label>
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] text-muted-foreground">{text.length}/500</span>
+                <button
+                  type="submit"
+                  disabled={busy || !text.trim()}
+                  className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+                >
+                  {busy ? "Posting…" : "Post"}
+                </button>
+              </div>
             </div>
           </form>
         )
@@ -247,6 +369,115 @@ export function Comments({ episodeId }: { episodeId: string }) {
       ) : (
         <ul className="space-y-3">{roots.map((c) => renderItem(c))}</ul>
       )}
+
+      <ReportDialog
+        comment={reportFor}
+        onClose={() => setReportFor(null)}
+        episodeId={episodeId}
+        reporterUid={user?.uid ?? ""}
+      />
     </section>
+  );
+}
+
+function ReportDialog({
+  comment,
+  onClose,
+  episodeId,
+  reporterUid,
+}: {
+  comment: Comment | null;
+  onClose: () => void;
+  episodeId: string;
+  reporterUid: string;
+}) {
+  const [reason, setReason] = useState<Reason>("Spam");
+  const [custom, setCustom] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (comment) { setReason("Spam"); setCustom(""); }
+  }, [comment]);
+
+  const submit = async () => {
+    if (!comment || !reporterUid) return;
+    if (reason === "Other" && !custom.trim()) {
+      return toast.error("Please describe the issue");
+    }
+    setBusy(true);
+    try {
+      await reportComment({
+        episodeId,
+        commentId: comment.id,
+        reporterUid,
+        reason,
+        customText: reason === "Other" ? custom.trim() : undefined,
+        textSnippet: comment.text,
+        commentUid: comment.uid,
+      });
+      toast.success("Reported. Moderators will review.");
+      onClose();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog open={!!comment} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Report comment</DialogTitle>
+          <DialogDescription>
+            Help keep AnimePlay safe. Select a reason for flagging this comment.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid grid-cols-2 gap-2">
+          {REASONS.map((r) => (
+            <button
+              key={r}
+              type="button"
+              onClick={() => setReason(r)}
+              className={
+                "rounded-xl px-3 py-2.5 text-sm font-medium ring-1 transition " +
+                (reason === r
+                  ? "bg-primary/20 text-primary ring-primary/50"
+                  : "bg-card text-foreground/80 ring-white/10 hover:ring-primary/30")
+              }
+            >
+              {r === "Other" ? "Custom" : r}
+            </button>
+          ))}
+        </div>
+        {reason === "Other" && (
+          <textarea
+            value={custom}
+            onChange={(e) => setCustom(e.target.value)}
+            rows={3}
+            maxLength={200}
+            placeholder="Describe the issue (max 200 chars)"
+            className="input resize-none"
+          />
+        )}
+        <DialogFooter>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg bg-card px-4 py-2 text-sm ring-1 ring-white/10 hover:ring-white/20"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={submit}
+            className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-black hover:bg-amber-400 disabled:opacity-60"
+          >
+            {busy ? "Submitting…" : "Submit report"}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
