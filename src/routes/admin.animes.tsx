@@ -444,14 +444,17 @@ function EpisodesManager({ anime }: { anime: Anime }) {
     }
   };
 
-  const onDelete = async (ep: Episode) => {
-    if (!confirm(`Delete episode ${ep.number}?`)) return;
+  const [confirmEp, setConfirmEp] = useState<Episode | null>(null);
+  const doDeleteEp = async () => {
+    if (!confirmEp) return;
     try {
-      await deleteEpisode(ep.id);
+      await deleteEpisode(confirmEp.id);
       toast.success("Deleted");
-      if (editing?.id === ep.id) reset();
+      if (editing?.id === confirmEp.id) reset();
     } catch (err: any) {
       toast.error(err?.message ?? "Delete failed");
+    } finally {
+      setConfirmEp(null);
     }
   };
 
