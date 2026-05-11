@@ -9,8 +9,6 @@ import { subscribeHistory, type HistoryItem } from "../lib/history";
 import { getPublicBio, setPublicBio } from "../lib/settings";
 import { RoleBadges, rolesFromProfile } from "../components/RoleBadges";
 
-const ADMIN_EMAIL = "husain2hasan4@gmail.com";
-
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
   head: () => ({ meta: [{ title: "Profile — AnimePlay" }] }),
