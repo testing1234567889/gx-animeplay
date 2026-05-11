@@ -11,7 +11,7 @@ export const Route = createFileRoute("/profile/history")({
 });
 
 function HistoryPage() {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const [items, setItems] = useState<HistoryItem[] | null>(null);
 
