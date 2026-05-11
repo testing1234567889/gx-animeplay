@@ -1,14 +1,19 @@
 import { Link } from "@tanstack/react-router";
-import { Flame, CheckCircle2, Bookmark } from "lucide-react";
+import { Flame, CheckCircle2, Bookmark, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Anime } from "../lib/types";
 import { useAuth } from "../lib/auth-context";
 import { addBookmark, removeBookmark, isBookmarkedOnce } from "../lib/bookmarks";
 import { toast } from "sonner";
 
-type Props = { a: Anime; showBookmark?: boolean; latestEpOverride?: string };
+type Props = {
+  a: Anime;
+  showBookmark?: boolean;
+  latestEpOverride?: string;
+  progress?: number; // 0-100
+};
 
-export function AnimeCard({ a, showBookmark = true, latestEpOverride }: Props) {
+export function AnimeCard({ a, showBookmark = true, latestEpOverride, progress }: Props) {
   const { user } = useAuth();
   const [bm, setBm] = useState(false);
 
