@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "../lib/auth-context";
-import { Film, LogOut, ArrowLeft, CreditCard, Users, Settings, ShieldCheck } from "lucide-react";
+import { Film, LogOut, ArrowLeft, CreditCard, Users, Settings, ShieldCheck, Flag } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -12,6 +12,7 @@ const tabs = [
   { to: "/admin/animes", label: "Animes", icon: Film },
   { to: "/admin/payments", label: "Payments", icon: CreditCard },
   { to: "/admin/users", label: "Users", icon: Users },
+  { to: "/admin/reports", label: "Reports", icon: Flag },
   { to: "/admin/settings", label: "Settings", icon: Settings },
 ] as const;
 
