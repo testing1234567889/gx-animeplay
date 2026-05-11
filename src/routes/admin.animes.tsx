@@ -507,6 +507,8 @@ function EpisodesManager({ anime }: { anime: Anime }) {
                       server3_name: ep.server3_name ?? "",
                       vip_only: !!ep.vip_only,
                       release_time: toLocalInput(ep.release_time),
+                      skipStart: ep.skipStart != null ? String(ep.skipStart) : "",
+                      skipEnd: ep.skipEnd != null ? String(ep.skipEnd) : "",
                     });
                   }}
                   className="rounded p-1.5 text-muted-foreground hover:bg-white/5 hover:text-foreground"
