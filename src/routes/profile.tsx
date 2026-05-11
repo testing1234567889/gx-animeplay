@@ -22,6 +22,7 @@ function ProfilePage() {
   const { user, profile, logout, loading } = useAuth();
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [bio, setBio] = useState<string>("");
+  const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
