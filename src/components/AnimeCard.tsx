@@ -10,10 +10,9 @@ type Props = {
   a: Anime;
   showBookmark?: boolean;
   latestEpOverride?: string;
-  progress?: number; // 0-100
 };
 
-export function AnimeCard({ a, showBookmark = true, latestEpOverride, progress }: Props) {
+export function AnimeCard({ a, showBookmark = true, latestEpOverride }: Props) {
   const { user } = useAuth();
   const [bm, setBm] = useState(false);
 
