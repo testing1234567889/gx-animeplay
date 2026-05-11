@@ -111,7 +111,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         {!hideTop && <TopNav />}
-        <div key={pathname} className="animate-fade-in">
+        <div key={pathname} className="animate-fade-in pb-24">
           <Outlet />
         </div>
         <BottomNav />

@@ -53,6 +53,7 @@ export function AnimeCard({ a, showBookmark = true }: Props) {
             src={a.poster_url}
             alt={a.title}
             loading="lazy"
+            referrerPolicy="no-referrer"
             className="h-full w-full object-cover"
           />
         ) : (
@@ -83,7 +84,7 @@ export function AnimeCard({ a, showBookmark = true }: Props) {
         {/* Bottom-Left: latest ep */}
         {a.latest_ep != null && a.latest_ep !== "" && (
           <span className="absolute bottom-1.5 left-1.5 rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground shadow">
-            Ep {a.latest_ep}
+            {a.latest_ep}
           </span>
         )}
 

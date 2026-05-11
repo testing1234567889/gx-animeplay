@@ -27,6 +27,7 @@ type AnimeForm = {
   type: string;
   status: string;
   latest_ep: string;
+  schedule_day: string;
   isTrending: boolean;
   isLatest: boolean;
   isMovie: boolean;
@@ -41,6 +42,7 @@ const emptyAnime: AnimeForm = {
   type: "Donghua",
   status: "Ongoing",
   latest_ep: "",
+  schedule_day: "",
   isTrending: false,
   isLatest: false,
   isMovie: false,
@@ -78,6 +80,7 @@ function AnimesAdmin() {
       type: a.type ?? "Donghua",
       status: a.status ?? "Ongoing",
       latest_ep: a.latest_ep != null ? String(a.latest_ep) : "",
+      schedule_day: a.schedule_day ?? "",
       isTrending: !!a.isTrending,
       isLatest: !!a.isLatest,
       isMovie: !!a.isMovie,
@@ -147,7 +150,12 @@ function AnimesAdmin() {
             >
               <div className="h-14 w-10 shrink-0 overflow-hidden rounded-md bg-white/5">
                 {a.poster_url && (
-                  <img src={a.poster_url} alt="" className="h-full w-full object-cover" />
+                  <img
+                    src={a.poster_url}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    className="h-full w-full object-cover"
+                  />
                 )}
               </div>
               <div className="min-w-0 flex-1">
@@ -255,6 +263,22 @@ function AnimesAdmin() {
                 className="input"
               />
             </Field>
+            <Field label="Schedule Day">
+              <select
+                value={form.schedule_day}
+                onChange={(e) => setForm({ ...form, schedule_day: e.target.value })}
+                className="input"
+              >
+                <option value="">—</option>
+                <option>Monday</option>
+                <option>Tuesday</option>
+                <option>Wednesday</option>
+                <option>Thursday</option>
+                <option>Friday</option>
+                <option>Saturday</option>
+                <option>Sunday</option>
+              </select>
+            </Field>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
             {(["isTrending", "isLatest", "isMovie", "isUpcoming"] as const).map((k) => (
@@ -320,9 +344,10 @@ function EpisodesManager({ anime }: { anime: Anime }) {
     e.preventDefault();
     setBusy(true);
     try {
+      const num = Number(form.number) || 0;
       const payload = {
         anime_id: anime.id,
-        number: Number(form.number) || 0,
+        number: num,
         title: form.title,
         dailymotion_id: form.dailymotion_id,
         okru_id: form.okru_id,
@@ -333,6 +358,11 @@ function EpisodesManager({ anime }: { anime: Anime }) {
       } else {
         await createEpisode(payload);
         toast.success("Episode added");
+      }
+      // Sync parent anime's latest_ep if this is higher
+      const currentLatest = Number(anime.latest_ep) || 0;
+      if (num > currentLatest) {
+        await updateAnime(anime.id, { latest_ep: num });
       }
       reset();
     } catch (err: any) {

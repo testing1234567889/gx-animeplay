@@ -11,6 +11,7 @@ export type Anime = {
   isLatest?: boolean;
   isMovie?: boolean;
   isUpcoming?: boolean;
+  schedule_day?: string;
   created_at?: number;
 };
 

@@ -25,9 +25,9 @@ function AdminLayout() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 pb-28 pt-6 md:pt-10 md:pb-12">
-      {/* Header */}
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <div className="mx-auto max-w-7xl px-4 pb-28 pt-4 md:pt-10 md:pb-12">
+      {/* Header — desktop only */}
+      <header className="mb-6 hidden md:flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Link
             to="/"
@@ -45,10 +45,23 @@ function AdminLayout() {
         </div>
         <button
           onClick={() => logout()}
-          className="hidden md:inline-flex items-center gap-1.5 rounded-lg bg-card px-3 py-2 text-sm ring-1 ring-white/10 hover:ring-destructive/50 hover:text-destructive"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-card px-3 py-2 text-sm ring-1 ring-white/10 hover:ring-destructive/50 hover:text-destructive"
         >
           <LogOut className="h-4 w-4" /> Logout
         </button>
+      </header>
+
+      {/* Mobile compact header */}
+      <header className="md:hidden mb-4 flex items-center justify-between">
+        <Link
+          to="/"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-card ring-1 ring-white/10"
+          aria-label="Back"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Link>
+        <h1 className="text-base font-semibold">Admin</h1>
+        <span className="h-9 w-9" />
       </header>
 
       <Outlet />
