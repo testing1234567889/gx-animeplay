@@ -40,7 +40,7 @@ function Home() {
   const heroItems = sections.trending.length ? sections.trending : (animes?.slice(0, 5) ?? []);
 
   return (
-    <main className="mx-auto max-w-7xl px-4 pb-32 pt-4">
+    <main className="mx-auto max-w-7xl px-4 pt-4">
       {animes === null ? (
         <Skeleton className="mb-6 aspect-[16/9] md:aspect-[21/9] w-full" />
       ) : (

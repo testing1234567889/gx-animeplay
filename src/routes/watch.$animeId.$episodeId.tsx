@@ -70,7 +70,8 @@ function WatchPage() {
 
   const embedUrl = useMemo(() => {
     if (!current || locked) return null;
-    if (server === "dm" && current.dailymotion_id) return `https://www.dailymotion.com/embed/video/${current.dailymotion_id}`;
+    if (server === "dm" && current.dailymotion_id)
+      return `https://www.dailymotion.com/embed/video/${current.dailymotion_id}?autoplay=0&fullscreen=1`;
     if (server === "okru" && current.okru_id) return `https://ok.ru/videoembed/${current.okru_id}`;
     return null;
   }, [current, server, locked]);
@@ -118,7 +119,7 @@ function WatchPage() {
               key={embedUrl}
               src={embedUrl}
               title={`${anime?.title ?? "Episode"} — ${current.number}`}
-              allow="autoplay; fullscreen; picture-in-picture; accelerometer; gyroscope; encrypted-media"
+              allow="autoplay; fullscreen; picture-in-picture; web-share"
               allowFullScreen={true}
               {...({ webkitallowfullscreen: "true", mozallowfullscreen: "true" } as any)}
               className="absolute inset-0 h-full w-full border-0"

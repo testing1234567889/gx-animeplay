@@ -10,12 +10,15 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
-import { AuthProvider } from "../lib/auth-context";
+import { AuthProvider, useAuth } from "../lib/auth-context";
 import { Toaster } from "sonner";
 import { TopNav } from "../components/TopNav";
 import { BottomNav } from "../components/BottomNav";
 import { AnnouncementBar } from "../components/AnnouncementBar";
 import { BannedOverlay } from "../components/BannedOverlay";
+import { EmailVerificationPending } from "../components/EmailVerificationPending";
+
+const PROTECTED_PREFIXES = ["/profile", "/bookmark", "/admin", "/upgrade"];
 
 function NotFoundComponent() {
   return (
@@ -107,30 +110,33 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const { pathname } = useLocation();
-  const hideTop = pathname.startsWith("/admin") || pathname.startsWith("/login");
-  const hideBottom = pathname.startsWith("/admin") || pathname.startsWith("/login") || pathname.startsWith("/watch");
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <div onContextMenu={(e) => e.preventDefault()} className="flex min-h-[100dvh] flex-col">
-          <AnnouncementBar />
-          {!hideTop && <TopNav />}
-          <main
-            className="flex-1"
-            style={{
-              paddingBottom: hideBottom
-                ? "env(safe-area-inset-bottom)"
-                : "calc(env(safe-area-inset-bottom) + 64px)",
-            }}
-          >
-            <Outlet />
-          </main>
-          <BottomNav />
-          <BannedOverlay />
-          <Toaster theme="dark" position="top-center" richColors />
-        </div>
+        <AppShell />
       </AuthProvider>
     </QueryClientProvider>
+  );
+}
+
+function AppShell() {
+  const { pathname } = useLocation();
+  const { user } = useAuth();
+  const hideTop = pathname.startsWith("/admin") || pathname.startsWith("/login");
+  const hideBottom = pathname.startsWith("/admin") || pathname.startsWith("/login") || pathname.startsWith("/watch");
+  const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
+  const needsVerify = !!user && !user.emailVerified && isProtected;
+
+  return (
+    <div onContextMenu={(e) => e.preventDefault()} className="flex min-h-[100dvh] flex-col overflow-x-hidden">
+      <AnnouncementBar />
+      {!hideTop && <TopNav />}
+      <main className={"flex-1 " + (hideBottom ? "" : "pb-16")}>
+        {needsVerify ? <EmailVerificationPending /> : <Outlet />}
+      </main>
+      <BottomNav />
+      <BannedOverlay />
+      <Toaster theme="dark" position="top-center" richColors />
+    </div>
   );
 }
