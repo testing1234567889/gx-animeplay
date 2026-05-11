@@ -82,9 +82,9 @@ export function AnimeCard({ a, showBookmark = true, latestEpOverride }: Props) {
         )}
 
         {/* Bottom-Left: latest ep */}
-        {a.latest_ep != null && a.latest_ep !== "" && (
+        {(latestEpOverride ?? (a.latest_ep != null && a.latest_ep !== "" ? String(a.latest_ep) : "")) && (
           <span className="absolute bottom-1.5 left-1.5 rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground shadow">
-            {a.latest_ep}
+            {latestEpOverride ?? a.latest_ep}
           </span>
         )}
 
