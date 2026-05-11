@@ -179,25 +179,35 @@ function WatchPage() {
       </div>
 
       {current && !locked && (
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="mr-2 text-xs uppercase tracking-wider text-muted-foreground">Server</span>
-          {([
-            { k: "dm" as const, label: "Server 1 (DM)", available: !!current.dailymotion_id },
-            { k: "okru" as const, label: "Server 2 (OK)", available: !!current.okru_id },
-          ]).map((s) => (
-            <button
-              key={s.k}
-              disabled={!s.available}
-              onClick={() => setServer(s.k)}
-              className={
-                "rounded-xl px-4 py-2 text-sm font-medium transition glass " +
-                (server === s.k ? "bg-primary/20 text-foreground ring-1 ring-primary" : "text-muted-foreground hover:text-foreground") +
-                (!s.available ? " opacity-40 cursor-not-allowed" : "")
-              }
-            >
-              {s.label}
-            </button>
-          ))}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="mr-2 text-xs uppercase tracking-wider text-muted-foreground">Server</span>
+            {([
+              { k: "dm" as const, label: "Server 1 (DM)", available: !!current.dailymotion_id },
+              { k: "okru" as const, label: "Server 2 (OK)", available: !!current.okru_id },
+            ]).map((s) => (
+              <button
+                key={s.k}
+                disabled={!s.available}
+                onClick={() => setServer(s.k)}
+                className={
+                  "rounded-xl px-4 py-2 text-sm font-medium transition glass " +
+                  (server === s.k ? "bg-primary/20 text-foreground ring-1 ring-primary" : "text-muted-foreground hover:text-foreground") +
+                  (!s.available ? " opacity-40 cursor-not-allowed" : "")
+                }
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={toggleFullscreen}
+            title="Full Screen"
+            aria-label="Full Screen"
+            className="p-2.5 rounded-lg bg-slate-800 hover:bg-cyan-900 border border-slate-700 text-cyan-400 transition-all"
+          >
+            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+          </button>
         </div>
       )}
 
