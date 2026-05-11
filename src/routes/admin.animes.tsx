@@ -150,7 +150,12 @@ function AnimesAdmin() {
             >
               <div className="h-14 w-10 shrink-0 overflow-hidden rounded-md bg-white/5">
                 {a.poster_url && (
-                  <img src={a.poster_url} alt="" className="h-full w-full object-cover" />
+                  <img
+                    src={a.poster_url}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    className="h-full w-full object-cover"
+                  />
                 )}
               </div>
               <div className="min-w-0 flex-1">
