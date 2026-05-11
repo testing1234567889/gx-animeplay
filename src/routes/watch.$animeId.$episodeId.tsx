@@ -118,8 +118,9 @@ function WatchPage() {
               key={embedUrl}
               src={embedUrl}
               title={`${anime?.title ?? "Episode"} — ${current.number}`}
-              allow="autoplay; fullscreen; picture-in-picture"
-              allowFullScreen
+              allow="autoplay; fullscreen; picture-in-picture; accelerometer; gyroscope; encrypted-media"
+              allowFullScreen={true}
+              {...({ webkitallowfullscreen: "true", mozallowfullscreen: "true" } as any)}
               className="absolute inset-0 h-full w-full border-0"
             />
           ) : (
