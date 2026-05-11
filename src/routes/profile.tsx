@@ -7,7 +7,7 @@ import { useAuth } from "../lib/auth-context";
 import { auth } from "../lib/firebase";
 import { subscribeHistory, type HistoryItem } from "../lib/history";
 import { getPublicBio, setPublicBio } from "../lib/settings";
-import { VipBadge } from "../components/VipBadge";
+import { RoleBadges, rolesFromProfile } from "../components/RoleBadges";
 
 const ADMIN_EMAIL = "husain2hasan4@gmail.com";
 
