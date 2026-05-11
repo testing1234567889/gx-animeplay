@@ -1,10 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Bookmark, Crown, History, HelpCircle, LogOut, Shield, ChevronRight, User as UserIcon, Pencil } from "lucide-react";
+import { useEffect, useState, type FormEvent } from "react";
+import { Bookmark, Crown, History, HelpCircle, LogOut, Shield, ChevronRight, User as UserIcon, Pencil, X, Save } from "lucide-react";
+import { updateProfile } from "firebase/auth";
+import { toast } from "sonner";
 import { useAuth } from "../lib/auth-context";
+import { auth } from "../lib/firebase";
 import { subscribeHistory, type HistoryItem } from "../lib/history";
-import { getPublicBio } from "../lib/settings";
+import { getPublicBio, setPublicBio } from "../lib/settings";
 import { VipBadge } from "../components/VipBadge";
+
+const ADMIN_EMAIL = "husain2hasan4@gmail.com";
 
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
@@ -17,6 +22,7 @@ function ProfilePage() {
   const { user, profile, logout, loading } = useAuth();
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [bio, setBio] = useState<string>("");
+  const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -60,13 +66,14 @@ function ProfilePage() {
             <div className="truncate text-xs text-muted-foreground">{user.email}</div>
             {bio && <p className="mt-1 line-clamp-2 text-xs text-foreground/70">{bio}</p>}
           </div>
-          <Link
-            to="/profile/settings"
+          <button
+            type="button"
+            onClick={() => setEditOpen(true)}
             aria-label="Edit profile"
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15 hover:bg-white/15"
           >
             <Pencil className="h-4 w-4" />
-          </Link>
+          </button>
         </div>
 
         {pending && (
@@ -114,8 +121,9 @@ function ProfilePage() {
 
       <Section title="Account">
         <Row to="/upgrade" icon={Crown} label={vip ? "Manage Subscription" : "Subscription"} accent={vip} />
-        {/* admin */}
-        <Row to="/admin" icon={Shield} label="Admin Dashboard" />
+        {(profile?.isAdmin || user.email === ADMIN_EMAIL) && (
+          <Row to="/admin" icon={Shield} label="Admin Dashboard" />
+        )}
       </Section>
 
       <Section title="Support">
@@ -158,7 +166,130 @@ function ProfilePage() {
           ))}
         </Section>
       )}
+
+      {editOpen && (
+        <EditProfileModal
+          uid={user.uid}
+          initialName={user.displayName ?? ""}
+          initialBio={bio}
+          onClose={() => setEditOpen(false)}
+          onSaved={(n, b) => setBio(b)}
+        />
+      )}
     </main>
+  );
+}
+
+function EditProfileModal({
+  uid, initialName, initialBio, onClose, onSaved,
+}: {
+  uid: string;
+  initialName: string;
+  initialBio: string;
+  onClose: () => void;
+  onSaved: (name: string, bio: string) => void;
+}) {
+  const [name, setName] = useState(initialName);
+  const [bio, setBioVal] = useState(initialBio);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    getPublicBio(uid).then((b) => setBioVal(b)).catch(() => {});
+  }, [uid]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  const onSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!auth.currentUser) return;
+    const n = name.trim().slice(0, 32);
+    const b = bio.trim().slice(0, 160);
+    setBusy(true);
+    try {
+      await updateProfile(auth.currentUser, { displayName: n });
+      await setPublicBio(uid, b);
+      onSaved(n, b);
+      toast.success("Profile updated");
+      onClose();
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to update");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in"
+      onClick={onClose}
+    >
+      <form
+        onClick={(e) => e.stopPropagation()}
+        onSubmit={onSubmit}
+        className="relative w-full sm:max-w-md overflow-hidden rounded-t-3xl sm:rounded-3xl border border-white/10 bg-slate-950/95 p-5 backdrop-blur-xl"
+      >
+        <div className="pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/30 blur-3xl" />
+        <div className="relative mb-4 flex items-center justify-between">
+          <h2 className="text-base font-bold">Edit Profile</h2>
+          <button type="button" onClick={onClose} aria-label="Close" className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <label className="relative block">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Display Name</span>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={32}
+            placeholder="e.g. Senku-kun"
+            className="input mt-1.5"
+          />
+          <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
+            <span>Synced to Firebase Auth</span>
+            <span>{name.length}/32</span>
+          </div>
+        </label>
+
+        <label className="relative mt-4 block">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bio</span>
+          <textarea
+            value={bio}
+            onChange={(e) => setBioVal(e.target.value)}
+            rows={3}
+            maxLength={160}
+            placeholder="Tell other otaku about yourself…"
+            className="input mt-1.5 resize-none"
+          />
+          <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
+            <span>Public — visible to others</span>
+            <span>{bio.length}/160</span>
+          </div>
+        </label>
+
+        <div className="mt-5 flex gap-2">
+          <button type="button" onClick={onClose} className="flex-1 rounded-xl bg-white/5 py-3 text-sm font-semibold ring-1 ring-white/10">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={busy}
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+          >
+            <Save className="h-4 w-4" />
+            {busy ? "Saving…" : "Save"}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }
 
