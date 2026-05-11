@@ -71,7 +71,7 @@ function ProfilePage() {
             </div>
             <div className="truncate text-xs text-muted-foreground">{user.email}</div>
             <RoleBadges
-              roles={{ ...rolesFromProfile(profile), isAdmin: !!profile?.isAdmin || user.email === ADMIN_EMAIL }}
+              roles={{ ...rolesFromProfile(profile), isAdmin: !!profile?.isAdmin }}
               className="mt-1.5"
             />
             {bio && <p className="mt-1.5 line-clamp-2 text-xs text-foreground/70">{bio}</p>}
