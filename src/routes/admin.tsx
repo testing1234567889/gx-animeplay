@@ -8,8 +8,6 @@ export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — AnimePlay" }] }),
 });
 
-const ADMIN_EMAIL = "husain2hasan4@gmail.com";
-
 const tabs = [
   { to: "/admin/animes", label: "Animes", icon: Film },
   { to: "/admin/payments", label: "Payments", icon: CreditCard },
