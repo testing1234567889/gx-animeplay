@@ -344,9 +344,10 @@ function EpisodesManager({ anime }: { anime: Anime }) {
     e.preventDefault();
     setBusy(true);
     try {
+      const num = Number(form.number) || 0;
       const payload = {
         anime_id: anime.id,
-        number: Number(form.number) || 0,
+        number: num,
         title: form.title,
         dailymotion_id: form.dailymotion_id,
         okru_id: form.okru_id,
@@ -357,6 +358,11 @@ function EpisodesManager({ anime }: { anime: Anime }) {
       } else {
         await createEpisode(payload);
         toast.success("Episode added");
+      }
+      // Sync parent anime's latest_ep if this is higher
+      const currentLatest = Number(anime.latest_ep) || 0;
+      if (num > currentLatest) {
+        await updateAnime(anime.id, { latest_ep: num });
       }
       reset();
     } catch (err: any) {
