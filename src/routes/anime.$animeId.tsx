@@ -129,6 +129,12 @@ function AnimeDetail() {
                   Latest: {anime.latest_ep}
                 </span>
               )}
+              {anime.globalRating ? (
+                <span className="inline-flex items-center gap-1 rounded bg-amber-500/15 px-2 py-0.5 font-bold text-amber-400 ring-1 ring-amber-400/30">
+                  <Star className="h-3 w-3 fill-current" /> {anime.globalRating.toFixed(1)}
+                  {anime.ratingCount ? <span className="font-normal text-amber-300/70">({anime.ratingCount})</span> : null}
+                </span>
+              ) : null}
             </div>
             {Array.isArray(anime.genres) && anime.genres.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-1.5">
