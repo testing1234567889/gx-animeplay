@@ -164,7 +164,7 @@ function WatchPage() {
               src={embedUrl}
               className="absolute top-0 left-0 h-full w-full border-0"
               frameBorder="0"
-              allow="fullscreen; picture-in-picture"
+              allow="autoplay; fullscreen; picture-in-picture"
               allowFullScreen={true}
               title="Video Player"
             />
