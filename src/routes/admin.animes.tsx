@@ -444,7 +444,7 @@ function EpisodesManager({ anime }: { anime: Anime }) {
                     {ep.title || `Episode ${ep.number}`}
                   </div>
                   <div className="truncate text-[11px] text-muted-foreground">
-                    DM: {ep.dailymotion_id || "—"} · OK: {ep.okru_id || "—"}
+                    S1: {ep.server1_data || ep.dailymotion_id || "—"} · S2: {ep.server2_data || ep.okru_id || "—"} · S3: {ep.server3_data || "—"}
                   </div>
                 </div>
                 <button
@@ -453,8 +453,12 @@ function EpisodesManager({ anime }: { anime: Anime }) {
                     setForm({
                       number: String(ep.number ?? ""),
                       title: ep.title ?? "",
-                      dailymotion_id: ep.dailymotion_id ?? "",
-                      okru_id: ep.okru_id ?? "",
+                      server1_data: ep.server1_data ?? ep.dailymotion_id ?? "",
+                      server1_name: ep.server1_name ?? "",
+                      server2_data: ep.server2_data ?? ep.okru_id ?? "",
+                      server2_name: ep.server2_name ?? "",
+                      server3_data: ep.server3_data ?? "",
+                      server3_name: ep.server3_name ?? "",
                       vip_only: !!ep.vip_only,
                       release_time: toLocalInput(ep.release_time),
                     });
