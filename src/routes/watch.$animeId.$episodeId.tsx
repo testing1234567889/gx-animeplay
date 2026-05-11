@@ -187,7 +187,14 @@ function WatchPage() {
             </Link>
           </div>
         ) : (
-          renderPlayer()
+          <>
+            {renderPlayer()}
+            {playerLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50 pointer-events-none">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -239,8 +246,10 @@ function WatchPage() {
                     className={"flex w-full items-center gap-3 rounded-xl p-3 text-left transition ring-1 " +
                       (active ? "bg-primary/15 ring-primary/50" : "bg-card ring-white/5 hover:ring-primary/30")}
                   >
-                    <div className={"flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-sm font-bold " +
-                      (active ? "bg-primary text-primary-foreground" : "bg-primary/15 text-primary")}>▶</div>
+                    <div className={"flex h-11 w-11 shrink-0 items-center justify-center rounded-lg " +
+                      (active ? "bg-primary text-primary-foreground" : "bg-primary/15 text-primary")}>
+                      <Play className="w-4 h-4 fill-current" />
+                    </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-1.5">
                         <span className="truncate text-sm font-semibold">
@@ -253,8 +262,7 @@ function WatchPage() {
                         )}
                       </div>
                       <div className="mt-0.5 truncate text-xs text-muted-foreground">
-                        {ep.dailymotion_id ? "DM" : ""}{ep.dailymotion_id && ep.okru_id ? " · " : ""}{ep.okru_id ? "OK" : ""}
-                        {!ep.dailymotion_id && !ep.okru_id ? "No source" : " available"}
+                        {[ep.server1_data || ep.dailymotion_id, ep.server2_data || ep.okru_id, ep.server3_data].filter(Boolean).length || 0} server(s)
                       </div>
                     </div>
                   </button>
