@@ -373,6 +373,8 @@ type EpForm = {
   server3_data: string; server3_name: string;
   vip_only: boolean;
   release_time: string;
+  skipStart: string;
+  skipEnd: string;
 };
 const emptyEp: EpForm = {
   number: "", title: "",
@@ -380,6 +382,7 @@ const emptyEp: EpForm = {
   server2_data: "", server2_name: "",
   server3_data: "", server3_name: "",
   vip_only: false, release_time: "",
+  skipStart: "", skipEnd: "",
 };
 
 function toLocalInput(ms?: number) {
