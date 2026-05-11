@@ -154,6 +154,10 @@ function AnimesAdmin() {
                     src={a.poster_url}
                     alt=""
                     referrerPolicy="no-referrer"
+                    crossOrigin="anonymous"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://placehold.co/400x600?text=No+Image";
+                    }}
                     className="h-full w-full object-cover"
                   />
                 )}
