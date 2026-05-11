@@ -37,6 +37,7 @@ export type UserProfile = {
   uid: string;
   email?: string | null;
   displayName?: string | null;
+  photoURL?: string | null;
   status?: "free" | "vip";
   vip_until?: number | null;
   banned?: boolean;
