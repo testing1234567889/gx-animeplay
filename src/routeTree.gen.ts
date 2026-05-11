@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UpgradeRouteImport } from './routes/upgrade'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as ScheduleRouteImport } from './routes/schedule'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
@@ -28,6 +29,11 @@ import { Route as WatchAnimeIdEpisodeIdRouteImport } from './routes/watch.$anime
 const UpgradeRoute = UpgradeRouteImport.update({
   id: '/upgrade',
   path: '/upgrade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ScheduleRoute = ScheduleRouteImport.update({
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRouteWithChildren
   '/schedule': typeof ScheduleRoute
+  '/search': typeof SearchRoute
   '/upgrade': typeof UpgradeRoute
   '/admin/animes': typeof AdminAnimesRoute
   '/admin/payments': typeof AdminPaymentsRoute
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRouteWithChildren
   '/schedule': typeof ScheduleRoute
+  '/search': typeof SearchRoute
   '/upgrade': typeof UpgradeRoute
   '/admin/animes': typeof AdminAnimesRoute
   '/admin/payments': typeof AdminPaymentsRoute
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRouteWithChildren
   '/schedule': typeof ScheduleRoute
+  '/search': typeof SearchRoute
   '/upgrade': typeof UpgradeRoute
   '/admin/animes': typeof AdminAnimesRoute
   '/admin/payments': typeof AdminPaymentsRoute
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/schedule'
+    | '/search'
     | '/upgrade'
     | '/admin/animes'
     | '/admin/payments'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/schedule'
+    | '/search'
     | '/upgrade'
     | '/admin/animes'
     | '/admin/payments'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/schedule'
+    | '/search'
     | '/upgrade'
     | '/admin/animes'
     | '/admin/payments'
@@ -212,6 +224,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRouteWithChildren
   ScheduleRoute: typeof ScheduleRoute
+  SearchRoute: typeof SearchRoute
   UpgradeRoute: typeof UpgradeRoute
   AnimeAnimeIdRoute: typeof AnimeAnimeIdRoute
   WatchAnimeIdEpisodeIdRoute: typeof WatchAnimeIdEpisodeIdRoute
@@ -224,6 +237,13 @@ declare module '@tanstack/react-router' {
       path: '/upgrade'
       fullPath: '/upgrade'
       preLoaderRoute: typeof UpgradeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/schedule': {
@@ -363,6 +383,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRouteWithChildren,
   ScheduleRoute: ScheduleRoute,
+  SearchRoute: SearchRoute,
   UpgradeRoute: UpgradeRoute,
   AnimeAnimeIdRoute: AnimeAnimeIdRoute,
   WatchAnimeIdEpisodeIdRoute: WatchAnimeIdEpisodeIdRoute,
