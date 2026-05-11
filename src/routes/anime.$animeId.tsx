@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Bookmark, Play, Star } from "lucide-react";
 import { toast } from "sonner";
 import { getAnime, subscribeEpisodes } from "../lib/anime-api";
+import { rateAnime } from "../lib/progress";
 import type { Anime, Episode } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
 import { useAuth } from "../lib/auth-context";
