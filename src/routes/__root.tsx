@@ -113,7 +113,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <div onContextMenu={(e) => e.preventDefault()} className="flex min-h-dvh flex-col">
+        <div onContextMenu={(e) => e.preventDefault()} className="flex min-h-[100dvh] flex-col">
           <AnnouncementBar />
           {!hideTop && <TopNav />}
           <main
