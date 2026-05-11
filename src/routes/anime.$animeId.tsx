@@ -179,6 +179,9 @@ function AnimeDetail() {
                 <p className="text-slate-300 text-sm md:text-base mt-2 leading-relaxed">{anime.description}</p>
               </>
             )}
+
+            {/* Rating block — only logged-in users who haven't rated */}
+            <RateBlock anime={anime} onRated={() => getAnime(animeId).then(setAnime)} />
           </div>
         </motion.div>
 
