@@ -26,9 +26,9 @@ function AdminLayout() {
     return () => clearTimeout(t);
   }, []);
 
-  const isSuper = !!user && user.email === ADMIN_EMAIL;
+  const isSuper = false;
   const profileReady = !!profile;
-  const isAdmin = isSuper || !!profile?.isAdmin;
+  const isAdmin = !!profile?.isAdmin;
 
   useEffect(() => {
     if (loading) return;
