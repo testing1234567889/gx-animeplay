@@ -33,6 +33,9 @@ export type Episode = {
   server3_name?: string;
   vip_only?: boolean;
   release_time?: number; // ms epoch when it became released
+  skipStart?: number; // seconds
+  skipEnd?: number; // seconds
+  ratings?: Record<string, { uid: string; score: number }>;
   created_at?: number;
 };
 
