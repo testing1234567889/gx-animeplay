@@ -14,6 +14,10 @@ import {
 import type { Anime, Episode } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
 import { Pencil, Trash2, Plus, X, ListVideo } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "../components/ui/alert-dialog";
 
 export const Route = createFileRoute("/admin/animes")({
   component: AnimesAdmin,
@@ -28,6 +32,7 @@ type AnimeForm = {
   status: string;
   latest_ep: string;
   schedule_day: string;
+  genres: string;
   isTrending: boolean;
   isLatest: boolean;
   isMovie: boolean;
@@ -43,6 +48,7 @@ const emptyAnime: AnimeForm = {
   status: "Ongoing",
   latest_ep: "",
   schedule_day: "",
+  genres: "",
   isTrending: false,
   isLatest: false,
   isMovie: false,
@@ -81,6 +87,7 @@ function AnimesAdmin() {
       status: a.status ?? "Ongoing",
       latest_ep: a.latest_ep != null ? String(a.latest_ep) : "",
       schedule_day: a.schedule_day ?? "",
+      genres: Array.isArray(a.genres) ? a.genres.join(", ") : "",
       isTrending: !!a.isTrending,
       isLatest: !!a.isLatest,
       isMovie: !!a.isMovie,
@@ -93,7 +100,12 @@ function AnimesAdmin() {
     e.preventDefault();
     setBusy(true);
     try {
-      const payload = { ...form, latest_ep: form.latest_ep || "" };
+      const genresArr = form.genres
+        .split(",")
+        .map((g) => g.trim())
+        .filter(Boolean);
+      const { genres: _drop, ...rest } = form;
+      const payload = { ...rest, latest_ep: form.latest_ep || "", genres: genresArr };
       if (editing) {
         await updateAnime(editing.id, payload);
         toast.success("Anime updated");
@@ -109,13 +121,16 @@ function AnimesAdmin() {
     }
   };
 
-  const onDelete = async (a: Anime) => {
-    if (!confirm(`Delete "${a.title}" and all its episodes?`)) return;
+  const [confirmAnime, setConfirmAnime] = useState<Anime | null>(null);
+  const doDeleteAnime = async () => {
+    if (!confirmAnime) return;
     try {
-      await deleteAnime(a.id);
+      await deleteAnime(confirmAnime.id);
       toast.success("Deleted");
     } catch (err: any) {
       toast.error(err?.message ?? "Delete failed");
+    } finally {
+      setConfirmAnime(null);
     }
   };
 
