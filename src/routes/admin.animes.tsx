@@ -516,22 +516,56 @@ function EpisodesManager({ anime }: { anime: Anime }) {
             />
           </Field>
         </div>
-        <Field label="Dailymotion ID">
-          <input
-            value={form.dailymotion_id}
-            onChange={(e) => setForm({ ...form, dailymotion_id: e.target.value })}
-            placeholder="x8abcde"
-            className="input"
-          />
-        </Field>
-        <Field label="OK.RU ID">
-          <input
-            value={form.okru_id}
-            onChange={(e) => setForm({ ...form, okru_id: e.target.value })}
-            placeholder="1234567890123"
-            className="input"
-          />
-        </Field>
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="Server 1 Data (DM Video ID)">
+            <input
+              value={form.server1_data}
+              onChange={(e) => setForm({ ...form, server1_data: e.target.value })}
+              placeholder="x8abcde"
+              className="input"
+            />
+          </Field>
+          <Field label="Server 1 Name">
+            <input
+              value={form.server1_name}
+              onChange={(e) => setForm({ ...form, server1_name: e.target.value })}
+              placeholder="Server 1"
+              className="input"
+            />
+          </Field>
+          <Field label="Server 2 Data (OK.ru ID)">
+            <input
+              value={form.server2_data}
+              onChange={(e) => setForm({ ...form, server2_data: e.target.value })}
+              placeholder="1234567890123"
+              className="input"
+            />
+          </Field>
+          <Field label="Server 2 Name">
+            <input
+              value={form.server2_name}
+              onChange={(e) => setForm({ ...form, server2_name: e.target.value })}
+              placeholder="Server 2"
+              className="input"
+            />
+          </Field>
+          <Field label="Server 3 Data (Embed URL)">
+            <input
+              value={form.server3_data}
+              onChange={(e) => setForm({ ...form, server3_data: e.target.value })}
+              placeholder="https://..."
+              className="input"
+            />
+          </Field>
+          <Field label="Server 3 Name">
+            <input
+              value={form.server3_name}
+              onChange={(e) => setForm({ ...form, server3_name: e.target.value })}
+              placeholder="Server 3"
+              className="input"
+            />
+          </Field>
+        </div>
         <Field label="Release Time (basis for VIP early-access timer)">
           <input
             type="datetime-local"
