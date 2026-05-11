@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { ref, get } from "firebase/database";
-import { Pin, Reply as ReplyIcon, Trash2, Flag, EyeOff } from "lucide-react";
+import { Pin, Reply as ReplyIcon, Trash2, Flag, EyeOff, Send, ArrowUp } from "lucide-react";
 import { db } from "../lib/firebase";
 import { useAuth } from "../lib/auth-context";
 import {
