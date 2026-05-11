@@ -350,17 +350,42 @@ export function Comments({ episodeId, onSeek }: Props) {
   };
 
   return (
-    <section className="mt-10">
-      <h2 className="mb-3 text-lg font-semibold">Comments</h2>
+    <section ref={sectionRef} className="relative mt-10">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-lg font-semibold">
+          Comments <span className="text-muted-foreground font-normal">({totalCount})</span>
+        </h2>
+        <div className="inline-flex rounded-full bg-card p-1 ring-1 ring-white/10">
+          <button
+            onClick={() => setSortMode("top")}
+            className={
+              "rounded-full px-3 py-1 text-xs font-semibold transition " +
+              (sortMode === "top" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")
+            }
+          >
+            Top Comment
+          </button>
+          <button
+            onClick={() => setSortMode("new")}
+            className={
+              "rounded-full px-3 py-1 text-xs font-semibold transition " +
+              (sortMode === "new" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")
+            }
+          >
+            Terbaru
+          </button>
+        </div>
+      </div>
+
       {user ? (
         replyTo === null && (
-          <form onSubmit={(e) => submit(e, null)} className="mb-5 rounded-xl bg-card p-3 ring-1 ring-white/5">
+          <form onSubmit={(e) => submit(e, null)} className="mb-5 rounded-2xl bg-card p-3 ring-1 ring-white/10 focus-within:ring-primary/40 transition">
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
               rows={3}
               placeholder="Share your thoughts…"
-              className="input resize-none"
+              className="input resize-none rounded-xl"
               maxLength={500}
             />
             <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
@@ -377,9 +402,10 @@ export function Comments({ episodeId, onSeek }: Props) {
                 <button
                   type="submit"
                   disabled={busy || !text.trim()}
-                  className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+                  aria-label="Post comment"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:bg-primary/90 disabled:opacity-60 transition"
                 >
-                  {busy ? "Posting…" : "Post"}
+                  <Send className="h-4 w-4" />
                 </button>
               </div>
             </div>
@@ -388,7 +414,7 @@ export function Comments({ episodeId, onSeek }: Props) {
       ) : (
         <Link
           to="/login"
-          className="mb-5 block rounded-xl bg-card p-3 text-center text-sm text-muted-foreground ring-1 ring-white/5 hover:text-foreground"
+          className="mb-5 block rounded-2xl bg-card p-3 text-center text-sm text-muted-foreground ring-1 ring-white/5 hover:text-foreground"
         >
           Sign in to join the discussion →
         </Link>
@@ -406,6 +432,16 @@ export function Comments({ episodeId, onSeek }: Props) {
         </div>
       ) : (
         <ul className="space-y-3">{roots.map((c) => renderItem(c))}</ul>
+      )}
+
+      {showFab && (
+        <button
+          onClick={() => sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          aria-label="Scroll to top of comments"
+          className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-40 inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl shadow-primary/40 hover:scale-110 transition"
+        >
+          <ArrowUp className="h-5 w-5" />
+        </button>
       )}
 
       <ReportDialog
