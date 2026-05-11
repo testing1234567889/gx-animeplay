@@ -6,9 +6,9 @@ import { useAuth } from "../lib/auth-context";
 import { addBookmark, removeBookmark, isBookmarkedOnce } from "../lib/bookmarks";
 import { toast } from "sonner";
 
-type Props = { a: Anime; showBookmark?: boolean };
+type Props = { a: Anime; showBookmark?: boolean; latestEpOverride?: string };
 
-export function AnimeCard({ a, showBookmark = true }: Props) {
+export function AnimeCard({ a, showBookmark = true, latestEpOverride }: Props) {
   const { user } = useAuth();
   const [bm, setBm] = useState(false);
 
