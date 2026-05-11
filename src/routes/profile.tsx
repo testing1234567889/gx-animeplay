@@ -131,7 +131,7 @@ function ProfilePage() {
 
       <Section title="Account">
         <Row to="/upgrade" icon={Crown} label={vip ? "Manage Subscription" : "Subscription"} accent={vip} />
-        {(profile?.isAdmin || user.email === ADMIN_EMAIL) && (
+        {profile?.isAdmin && (
           <Row to="/admin" icon={Shield} label="Admin Dashboard" />
         )}
       </Section>
