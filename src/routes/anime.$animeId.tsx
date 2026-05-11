@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Bookmark, Play } from "lucide-react";
+import { Bookmark, Play, Star } from "lucide-react";
 import { toast } from "sonner";
 import { getAnime, subscribeEpisodes } from "../lib/anime-api";
 import type { Anime, Episode } from "../lib/types";
