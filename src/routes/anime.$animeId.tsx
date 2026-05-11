@@ -24,6 +24,7 @@ function AnimeDetail() {
   const { user } = useAuth();
   const [bm, setBm] = useState(false);
   const [bmBusy, setBmBusy] = useState(false);
+  const [epQuery, setEpQuery] = useState("");
 
   useEffect(() => {
     getAnime(animeId).then(setAnime);
