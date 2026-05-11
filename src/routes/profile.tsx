@@ -62,8 +62,9 @@ function ProfilePage() {
                 className="absolute inset-0 h-full w-full object-cover"
                 onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
               />
-            ) : null}
-            <span className="relative">{initial}</span>
+            ) : (
+              <span className="relative">{initial}</span>
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
