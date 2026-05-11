@@ -138,3 +138,22 @@ function UsersAdmin() {
     </div>
   );
 }
+
+function RoleToggle({
+  active, label, onClick, accent,
+}: { active: boolean; label: string; onClick: () => void; accent: "red" | "green" | "purple" }) {
+  const palette: Record<string, string> = {
+    red: active ? "bg-red-500/25 text-red-200 ring-red-400/50" : "bg-white/5 text-muted-foreground ring-white/10 hover:ring-red-400/30",
+    green: active ? "bg-emerald-500/25 text-emerald-200 ring-emerald-400/50" : "bg-white/5 text-muted-foreground ring-white/10 hover:ring-emerald-400/30",
+    purple: active ? "bg-purple-500/25 text-purple-200 ring-purple-400/50" : "bg-white/5 text-muted-foreground ring-white/10 hover:ring-purple-400/30",
+  };
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={"rounded-lg px-2.5 py-1.5 text-xs font-semibold ring-1 transition " + palette[accent]}
+    >
+      {active ? `★ ${label}` : label}
+    </button>
+  );
+}
