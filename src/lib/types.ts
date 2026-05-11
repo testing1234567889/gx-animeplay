@@ -12,6 +12,7 @@ export type Anime = {
   isMovie?: boolean;
   isUpcoming?: boolean;
   schedule_day?: string;
+  genres?: string[];
   created_at?: number;
 };
 
@@ -67,6 +68,8 @@ export type Comment = {
   email?: string;
   text: string;
   created_at: number;
+  pinned?: boolean;
+  parent_id?: string | null;
 };
 
 export type Announcement = {
