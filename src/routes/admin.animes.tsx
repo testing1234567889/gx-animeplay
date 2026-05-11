@@ -512,7 +512,7 @@ function EpisodesManager({ anime }: { anime: Anime }) {
                   <Pencil className="h-3.5 w-3.5" />
                 </button>
                 <button
-                  onClick={() => onDelete(ep)}
+                  onClick={() => setConfirmEp(ep)}
                   className="rounded p-1.5 text-muted-foreground hover:bg-destructive/20 hover:text-destructive"
                   aria-label="Delete"
                 >
