@@ -7,7 +7,7 @@ import { useAuth } from "../lib/auth-context";
 import { auth } from "../lib/firebase";
 import { subscribeHistory, type HistoryItem } from "../lib/history";
 import { getPublicBio, setPublicBio } from "../lib/settings";
-import { VipBadge } from "../components/VipBadge";
+import { RoleBadges, rolesFromProfile } from "../components/RoleBadges";
 
 const ADMIN_EMAIL = "husain2hasan4@gmail.com";
 
@@ -61,10 +61,13 @@ function ProfilePage() {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="truncate text-base font-semibold">{displayName}</span>
-              <VipBadge vip={vip} />
             </div>
             <div className="truncate text-xs text-muted-foreground">{user.email}</div>
-            {bio && <p className="mt-1 line-clamp-2 text-xs text-foreground/70">{bio}</p>}
+            <RoleBadges
+              roles={{ ...rolesFromProfile(profile), isAdmin: !!profile?.isAdmin || user.email === ADMIN_EMAIL }}
+              className="mt-1.5"
+            />
+            {bio && <p className="mt-1.5 line-clamp-2 text-xs text-foreground/70">{bio}</p>}
           </div>
           <button
             type="button"

@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { setUserBanned, setUserStatus, subscribeAllUsers } from "../lib/users";
+import { setUserBanned, setUserStatus, setUserRole, subscribeAllUsers } from "../lib/users";
 import type { UserProfile } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
-import { VipBadge } from "../components/VipBadge";
+import { RoleBadges, rolesFromProfile } from "../components/RoleBadges";
 
 export const Route = createFileRoute("/admin/users")({
   component: UsersAdmin,
@@ -65,40 +65,55 @@ function UsersAdmin() {
         <div className="rounded-xl border border-dashed border-white/10 p-10 text-center text-sm text-muted-foreground">No users.</div>
       ) : (
         <ul className="space-y-2">
-          {list.map((u) => (
-            <li key={u.uid} className="flex flex-wrap items-center gap-3 rounded-xl bg-card p-3 ring-1 ring-white/5">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/20 text-sm font-bold text-primary">
-                {(u.email?.[0] ?? "?").toUpperCase()}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-semibold">{u.email || u.uid}</div>
-                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
-                  <VipBadge vip={u.status === "vip"} />
-                  {u.banned && <span className="rounded bg-red-500/20 px-1.5 py-0.5 font-semibold text-red-300">BANNED</span>}
-                  {u.payment_status && u.payment_status !== "none" && (
-                    <span className="rounded bg-white/10 px-1.5 py-0.5">pay: {u.payment_status}</span>
-                  )}
+          {list.map((u) => {
+            const toggleRole = async (role: "isAdmin" | "isModerator" | "isBeta") => {
+              try {
+                await setUserRole(u.uid, role, !u[role]);
+                toast.success(`${role} ${!u[role] ? "enabled" : "disabled"}`);
+              } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+            };
+            return (
+            <li key={u.uid} className="rounded-xl bg-card p-3 ring-1 ring-white/5">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/20 text-sm font-bold text-primary">
+                  {(u.email?.[0] ?? "?").toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold">{u.email || u.uid}</div>
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <RoleBadges roles={rolesFromProfile(u)} />
+                    {u.banned && <span className="rounded-full bg-red-500/20 px-2 py-0.5 font-bold uppercase tracking-wider text-red-300 ring-1 ring-red-400/40">BANNED</span>}
+                    {u.payment_status && u.payment_status !== "none" && (
+                      <span className="rounded bg-white/10 px-1.5 py-0.5">pay: {u.payment_status}</span>
+                    )}
+                  </div>
                 </div>
               </div>
-              <button
-                onClick={() => toggleVip(u)}
-                className="rounded-lg bg-yellow-500/15 px-2.5 py-1.5 text-xs font-semibold text-yellow-300 ring-1 ring-yellow-400/30 hover:bg-yellow-500/25"
-              >
-                {u.status === "vip" ? "Demote" : "Make VIP"}
-              </button>
-              <button
-                onClick={() => toggleBan(u)}
-                className={
-                  "rounded-lg px-2.5 py-1.5 text-xs font-semibold ring-1 " +
-                  (u.banned
-                    ? "bg-emerald-500/15 text-emerald-300 ring-emerald-400/30 hover:bg-emerald-500/25"
-                    : "bg-red-500/15 text-red-300 ring-red-400/30 hover:bg-red-500/25")
-                }
-              >
-                {u.banned ? "Unban" : "Ban"}
-              </button>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                <RoleToggle active={!!u.isAdmin} label="Admin" onClick={() => toggleRole("isAdmin")} accent="red" />
+                <RoleToggle active={!!u.isModerator} label="Mod" onClick={() => toggleRole("isModerator")} accent="green" />
+                <RoleToggle active={!!u.isBeta} label="Beta" onClick={() => toggleRole("isBeta")} accent="purple" />
+                <button
+                  onClick={() => toggleVip(u)}
+                  className="rounded-lg bg-yellow-500/15 px-2.5 py-1.5 text-xs font-semibold text-yellow-300 ring-1 ring-yellow-400/30 hover:bg-yellow-500/25"
+                >
+                  {u.status === "vip" ? "Demote VIP" : "Make VIP"}
+                </button>
+                <button
+                  onClick={() => toggleBan(u)}
+                  className={
+                    "ml-auto rounded-lg px-2.5 py-1.5 text-xs font-semibold ring-1 " +
+                    (u.banned
+                      ? "bg-emerald-500/15 text-emerald-300 ring-emerald-400/30 hover:bg-emerald-500/25"
+                      : "bg-red-500/15 text-red-300 ring-red-400/30 hover:bg-red-500/25")
+                  }
+                >
+                  {u.banned ? "Unban" : "Ban"}
+                </button>
+              </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
 
@@ -121,5 +136,24 @@ function UsersAdmin() {
         </div>
       )}
     </div>
+  );
+}
+
+function RoleToggle({
+  active, label, onClick, accent,
+}: { active: boolean; label: string; onClick: () => void; accent: "red" | "green" | "purple" }) {
+  const palette: Record<string, string> = {
+    red: active ? "bg-red-500/25 text-red-200 ring-red-400/50" : "bg-white/5 text-muted-foreground ring-white/10 hover:ring-red-400/30",
+    green: active ? "bg-emerald-500/25 text-emerald-200 ring-emerald-400/50" : "bg-white/5 text-muted-foreground ring-white/10 hover:ring-emerald-400/30",
+    purple: active ? "bg-purple-500/25 text-purple-200 ring-purple-400/50" : "bg-white/5 text-muted-foreground ring-white/10 hover:ring-purple-400/30",
+  };
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={"rounded-lg px-2.5 py-1.5 text-xs font-semibold ring-1 transition " + palette[accent]}
+    >
+      {active ? `★ ${label}` : label}
+    </button>
   );
 }

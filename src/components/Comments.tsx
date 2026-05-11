@@ -5,8 +5,8 @@ import { ref, get } from "firebase/database";
 import { db } from "../lib/firebase";
 import { useAuth } from "../lib/auth-context";
 import { addComment, subscribeComments } from "../lib/comments";
-import type { Comment } from "../lib/types";
-import { VipBadge } from "./VipBadge";
+import type { Comment, UserProfile } from "../lib/types";
+import { RoleBadges, rolesFromProfile } from "./RoleBadges";
 import { Skeleton } from "./Skeleton";
 
 export function Comments({ episodeId }: { episodeId: string }) {
@@ -14,33 +14,33 @@ export function Comments({ episodeId }: { episodeId: string }) {
   const [items, setItems] = useState<Comment[] | null>(null);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
-  // Authoritative VIP status looked up from /users/{uid}/status — never trusted from comment doc.
-  const [vipMap, setVipMap] = useState<Record<string, boolean>>({});
+  // Authoritative roles looked up from /users/{uid} — never trusted from comment doc.
+  const [roleMap, setRoleMap] = useState<Record<string, UserProfile>>({});
 
   useEffect(() => subscribeComments(episodeId, setItems), [episodeId]);
 
   useEffect(() => {
     if (!items) return;
-    const unknown = Array.from(new Set(items.map((c) => c.uid))).filter((u) => !(u in vipMap));
+    const unknown = Array.from(new Set(items.map((c) => c.uid))).filter((u) => !(u in roleMap));
     if (unknown.length === 0) return;
     let cancelled = false;
     Promise.all(
       unknown.map(async (uid) => {
         try {
-          const s = await get(ref(db, `users/${uid}/status`));
-          return [uid, s.val() === "vip"] as const;
+          const s = await get(ref(db, `users/${uid}`));
+          return [uid, { uid, ...(s.val() as object) } as UserProfile] as const;
         } catch {
-          return [uid, false] as const;
+          return [uid, { uid } as UserProfile] as const;
         }
       }),
     ).then((entries) => {
       if (cancelled) return;
-      setVipMap((m) => ({ ...m, ...Object.fromEntries(entries) }));
+      setRoleMap((m) => ({ ...m, ...Object.fromEntries(entries) }));
     });
     return () => {
       cancelled = true;
     };
-  }, [items, vipMap]);
+  }, [items, roleMap]);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -119,7 +119,7 @@ export function Comments({ episodeId }: { episodeId: string }) {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="truncate text-sm font-semibold">{name}</span>
-                    <VipBadge vip={!!vipMap[c.uid]} />
+                    <RoleBadges roles={rolesFromProfile(roleMap[c.uid])} />
                     <span className="text-[11px] text-muted-foreground">
                       {new Date(c.created_at).toLocaleString()}
                     </span>

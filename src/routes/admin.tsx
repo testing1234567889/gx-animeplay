@@ -1,12 +1,14 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../lib/auth-context";
-import { Film, LogOut, ArrowLeft, CreditCard, Users, Settings } from "lucide-react";
+import { Film, LogOut, ArrowLeft, CreditCard, Users, Settings, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
   head: () => ({ meta: [{ title: "Admin — AnimePlay" }] }),
 });
+
+const ADMIN_EMAIL = "husain2hasan4@gmail.com";
 
 const tabs = [
   { to: "/admin/animes", label: "Animes", icon: Film },
@@ -18,24 +20,43 @@ const tabs = [
 function AdminLayout() {
   const { user, profile, loading, logout } = useAuth();
   const navigate = useNavigate();
+  // Wait for profile to settle. We only redirect if profile data is loaded
+  // AND the user is explicitly NOT admin (and not the hardcoded super-admin).
+  const [graceUp, setGraceUp] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setGraceUp(true), 800);
+    return () => clearTimeout(t);
+  }, []);
+
+  const isSuper = !!user && user.email === ADMIN_EMAIL;
+  const profileReady = !!profile;
+  const isAdmin = isSuper || !!profile?.isAdmin;
 
   useEffect(() => {
     if (loading) return;
-    if (!user) navigate({ to: "/login" });
-    else if (profile && !profile.isAdmin) navigate({ to: "/" });
-  }, [loading, user, profile, navigate]);
+    if (!user) {
+      navigate({ to: "/login" });
+      return;
+    }
+    // Only kick out if we have profile data AND it says not admin AND not super-admin.
+    if (graceUp && profileReady && !isAdmin) {
+      navigate({ to: "/" });
+    }
+  }, [loading, user, profileReady, isAdmin, graceUp, navigate]);
 
-  if (loading || !user || !profile) {
+  if (loading || !user || (!profileReady && !isSuper)) {
     return (
-      <main className="flex min-h-[60vh] items-center justify-center text-sm text-muted-foreground">
-        Checking session…
+      <main className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+        <p className="text-sm text-muted-foreground">Checking access…</p>
       </main>
     );
   }
 
-  if (!profile.isAdmin) {
+  if (!isAdmin) {
     return (
       <main className="flex min-h-[60vh] flex-col items-center justify-center gap-2 text-center px-6">
+        <ShieldCheck className="h-8 w-8 text-destructive" />
         <h1 className="text-xl font-bold">Admin access required</h1>
         <p className="text-sm text-muted-foreground">Your account does not have admin privileges.</p>
       </main>

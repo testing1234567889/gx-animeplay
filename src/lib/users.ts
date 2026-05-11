@@ -49,6 +49,14 @@ export async function setUserPaymentStatus(uid: string, payment_status: UserProf
   await update(ref(db, `users/${uid}`), { payment_status });
 }
 
+export async function setUserRole(
+  uid: string,
+  role: "isAdmin" | "isModerator" | "isBeta",
+  value: boolean,
+) {
+  await update(ref(db, `users/${uid}`), { [role]: value });
+}
+
 export function isVip(p?: UserProfile | null) {
   return !!p && p.status === "vip";
 }
