@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { setUserBanned, setUserStatus, subscribeAllUsers } from "../lib/users";
+import { setUserBanned, setUserStatus, setUserRole, subscribeAllUsers } from "../lib/users";
 import type { UserProfile } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
-import { VipBadge } from "../components/VipBadge";
+import { RoleBadges, rolesFromProfile } from "../components/RoleBadges";
 
 export const Route = createFileRoute("/admin/users")({
   component: UsersAdmin,
