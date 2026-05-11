@@ -95,6 +95,9 @@ export function Comments({ episodeId, onSeek }: Props) {
   const [roleMap, setRoleMap] = useState<Record<string, UserProfile>>({});
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [reportFor, setReportFor] = useState<Comment | null>(null);
+  const [sortMode, setSortMode] = useState<"top" | "new">("new");
+  const [showFab, setShowFab] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
 
   const isAdmin = !!profile?.isAdmin;
 
