@@ -109,7 +109,7 @@ function SchedulePage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {filtered.map((a) => (
-            <AnimeCard key={a.id} a={a} />
+            <AnimeCard key={a.id} a={a} latestEpOverride={smartEp(a)} />
           ))}
         </div>
       )}
