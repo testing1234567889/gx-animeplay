@@ -14,6 +14,10 @@ import {
 import type { Anime, Episode } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
 import { Pencil, Trash2, Plus, X, ListVideo } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "../components/ui/alert-dialog";
 
 export const Route = createFileRoute("/admin/animes")({
   component: AnimesAdmin,
@@ -28,6 +32,7 @@ type AnimeForm = {
   status: string;
   latest_ep: string;
   schedule_day: string;
+  genres: string;
   isTrending: boolean;
   isLatest: boolean;
   isMovie: boolean;
@@ -43,6 +48,7 @@ const emptyAnime: AnimeForm = {
   status: "Ongoing",
   latest_ep: "",
   schedule_day: "",
+  genres: "",
   isTrending: false,
   isLatest: false,
   isMovie: false,
@@ -81,6 +87,7 @@ function AnimesAdmin() {
       status: a.status ?? "Ongoing",
       latest_ep: a.latest_ep != null ? String(a.latest_ep) : "",
       schedule_day: a.schedule_day ?? "",
+      genres: Array.isArray(a.genres) ? a.genres.join(", ") : "",
       isTrending: !!a.isTrending,
       isLatest: !!a.isLatest,
       isMovie: !!a.isMovie,
@@ -93,7 +100,12 @@ function AnimesAdmin() {
     e.preventDefault();
     setBusy(true);
     try {
-      const payload = { ...form, latest_ep: form.latest_ep || "" };
+      const genresArr = form.genres
+        .split(",")
+        .map((g) => g.trim())
+        .filter(Boolean);
+      const { genres: _drop, ...rest } = form;
+      const payload = { ...rest, latest_ep: form.latest_ep || "", genres: genresArr };
       if (editing) {
         await updateAnime(editing.id, payload);
         toast.success("Anime updated");
@@ -109,13 +121,16 @@ function AnimesAdmin() {
     }
   };
 
-  const onDelete = async (a: Anime) => {
-    if (!confirm(`Delete "${a.title}" and all its episodes?`)) return;
+  const [confirmAnime, setConfirmAnime] = useState<Anime | null>(null);
+  const doDeleteAnime = async () => {
+    if (!confirmAnime) return;
     try {
-      await deleteAnime(a.id);
+      await deleteAnime(confirmAnime.id);
       toast.success("Deleted");
     } catch (err: any) {
       toast.error(err?.message ?? "Delete failed");
+    } finally {
+      setConfirmAnime(null);
     }
   };
 
@@ -190,7 +205,7 @@ function AnimesAdmin() {
                 <Pencil className="h-4 w-4" />
               </button>
               <button
-                onClick={() => onDelete(a)}
+                onClick={() => setConfirmAnime(a)}
                 className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/20 hover:text-destructive"
                 aria-label="Delete"
               >
@@ -284,6 +299,14 @@ function AnimesAdmin() {
               </select>
             </Field>
           </div>
+          <Field label="Genres (comma-separated)">
+            <input
+              value={form.genres}
+              onChange={(e) => setForm({ ...form, genres: e.target.value })}
+              placeholder="Action, Fantasy, Adventure"
+              className="input"
+            />
+          </Field>
           <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
             {(["isTrending", "isLatest", "isMovie", "isUpcoming"] as const).map((k) => (
               <label
@@ -319,6 +342,23 @@ function AnimesAdmin() {
       >
         {episodesFor && <EpisodesManager anime={episodesFor} />}
       </Modal>
+
+      <AlertDialog open={!!confirmAnime} onOpenChange={(o) => !o && setConfirmAnime(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this anime?</AlertDialogTitle>
+            <AlertDialogDescription>
+              "{confirmAnime?.title}" and all of its episodes will be permanently removed. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={doDeleteAnime} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -404,14 +444,17 @@ function EpisodesManager({ anime }: { anime: Anime }) {
     }
   };
 
-  const onDelete = async (ep: Episode) => {
-    if (!confirm(`Delete episode ${ep.number}?`)) return;
+  const [confirmEp, setConfirmEp] = useState<Episode | null>(null);
+  const doDeleteEp = async () => {
+    if (!confirmEp) return;
     try {
-      await deleteEpisode(ep.id);
+      await deleteEpisode(confirmEp.id);
       toast.success("Deleted");
-      if (editing?.id === ep.id) reset();
+      if (editing?.id === confirmEp.id) reset();
     } catch (err: any) {
       toast.error(err?.message ?? "Delete failed");
+    } finally {
+      setConfirmEp(null);
     }
   };
 
@@ -469,7 +512,7 @@ function EpisodesManager({ anime }: { anime: Anime }) {
                   <Pencil className="h-3.5 w-3.5" />
                 </button>
                 <button
-                  onClick={() => onDelete(ep)}
+                  onClick={() => setConfirmEp(ep)}
                   className="rounded p-1.5 text-muted-foreground hover:bg-destructive/20 hover:text-destructive"
                   aria-label="Delete"
                 >
@@ -591,6 +634,23 @@ function EpisodesManager({ anime }: { anime: Anime }) {
           {busy ? "Saving…" : editing ? "Save changes" : "Add Episode"}
         </button>
       </form>
+
+      <AlertDialog open={!!confirmEp} onOpenChange={(o) => !o && setConfirmEp(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this episode?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Episode {confirmEp?.number} will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={doDeleteEp} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
