@@ -29,22 +29,36 @@ function WatchPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
-    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener("fullscreenchange", onChange);
-    document.addEventListener("webkitfullscreenchange", onChange as any);
+    const onFullscreenChange = () => {
+      const isFull = !!document.fullscreenElement;
+      setIsFullscreen(isFull);
+      if (!isFull && (window.screen as any)?.orientation?.unlock) {
+        try { (window.screen as any).orientation.unlock(); } catch {}
+      }
+    };
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", onFullscreenChange as any);
     return () => {
-      document.removeEventListener("fullscreenchange", onChange);
-      document.removeEventListener("webkitfullscreenchange", onChange as any);
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", onFullscreenChange as any);
     };
   }, []);
 
-  const toggleFullscreen = () => {
+  const toggleFullscreen = async () => {
     const elem: any = playerContainerRef.current;
     if (!elem) return;
     if (!document.fullscreenElement) {
-      if (elem.requestFullscreen) elem.requestFullscreen();
-      else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
-      else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+      try {
+        if (elem.requestFullscreen) await elem.requestFullscreen();
+        else if (elem.webkitRequestFullscreen) await elem.webkitRequestFullscreen();
+        else if (elem.msRequestFullscreen) await elem.msRequestFullscreen();
+
+        if ((window.screen as any)?.orientation?.lock) {
+          await (window.screen as any).orientation.lock("landscape").catch(console.warn);
+        }
+      } catch (error) {
+        console.error("Fullscreen error:", error);
+      }
     } else {
       if (document.exitFullscreen) document.exitFullscreen();
     }
@@ -129,53 +143,57 @@ function WatchPage() {
         {current && (<><span className="mx-2">/</span><span className="text-foreground">Episode {current.number}</span></>)}
       </div>
 
-      <div ref={playerContainerRef} className="relative group w-full overflow-hidden rounded-2xl bg-black ring-1 ring-white/10">
-        <div className="relative aspect-video w-full">
-          {!current ? (
-            <Skeleton className="absolute inset-0 rounded-none" />
-          ) : locked ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6"
-              style={{ background: "radial-gradient(ellipse at center,rgba(245,158,11,0.18),transparent 70%)" }}>
-              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-yellow-500/20 ring-1 ring-yellow-400/40">
-                <Lock className="h-6 w-6 text-yellow-300" />
-              </div>
-              <div className="text-lg font-bold">VIP Early Access</div>
-              <p className="mt-1 max-w-md text-sm text-muted-foreground">
-                Free users can watch in <span className="font-mono font-bold text-yellow-300">{fmt(remainingMs)}</span>.
-                Go VIP to unlock instantly.
-              </p>
-              <Link to="/upgrade" className="mt-4 inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold text-black"
-                style={{ background: "linear-gradient(135deg,#FDE68A,#F59E0B,#B45309)" }}>
-                <Crown className="h-4 w-4" /> Upgrade to VIP
-              </Link>
+      <div
+        ref={playerContainerRef}
+        className={
+          "relative flex items-center justify-center bg-black w-full ring-1 ring-white/10 " +
+          (isFullscreen ? "h-screen" : "aspect-video rounded-2xl overflow-hidden")
+        }
+      >
+        {!current ? (
+          <Skeleton className="absolute inset-0 rounded-none" />
+        ) : locked ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6"
+            style={{ background: "radial-gradient(ellipse at center,rgba(245,158,11,0.18),transparent 70%)" }}>
+            <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-yellow-500/20 ring-1 ring-yellow-400/40">
+              <Lock className="h-6 w-6 text-yellow-300" />
             </div>
-          ) : server === "dm" && videoId ? (
-            <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
-              <iframe
-                ref={iframeRef}
-                src={`https://www.dailymotion.com/embed/video/${videoId}?autoplay=0`}
-                className="absolute top-0 left-0 w-full h-full"
-                frameBorder="0"
-                title="Dailymotion Player"
-              ></iframe>
-            </div>
-          ) : embedUrl ? (
-            <iframe
-              src={embedUrl}
-              className="absolute top-0 left-0 h-full w-full border-0"
-              frameBorder="0"
-              allow="autoplay; fullscreen; picture-in-picture"
-              allowFullScreen={true}
-              title="Video Player"
-            />
-          ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-              <div className="mb-2 text-3xl">📡</div>
-              <div className="text-lg font-semibold">Video Offline</div>
-              <p className="mt-1 text-sm text-muted-foreground">Try the other server.</p>
-            </div>
-          )}
-        </div>
+            <div className="text-lg font-bold">VIP Early Access</div>
+            <p className="mt-1 max-w-md text-sm text-muted-foreground">
+              Free users can watch in <span className="font-mono font-bold text-yellow-300">{fmt(remainingMs)}</span>.
+              Go VIP to unlock instantly.
+            </p>
+            <Link to="/upgrade" className="mt-4 inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold text-black"
+              style={{ background: "linear-gradient(135deg,#FDE68A,#F59E0B,#B45309)" }}>
+              <Crown className="h-4 w-4" /> Upgrade to VIP
+            </Link>
+          </div>
+        ) : server === "dm" && videoId ? (
+          <iframe
+            ref={iframeRef}
+            src={`https://www.dailymotion.com/embed/video/${videoId}?autoplay=0&ui-logo=0`}
+            className="absolute inset-0 w-full h-full"
+            frameBorder="0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
+            title="Dailymotion Player"
+          ></iframe>
+        ) : embedUrl ? (
+          <iframe
+            src={embedUrl}
+            className="absolute inset-0 h-full w-full border-0"
+            frameBorder="0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen={true}
+            title="Video Player"
+          />
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+            <div className="mb-2 text-3xl">📡</div>
+            <div className="text-lg font-semibold">Video Offline</div>
+            <p className="mt-1 text-sm text-muted-foreground">Try the other server.</p>
+          </div>
+        )}
       </div>
 
       {current && !locked && (
