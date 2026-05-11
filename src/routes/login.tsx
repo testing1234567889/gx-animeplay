@@ -1,49 +1,62 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "../lib/auth-context";
-import { motion } from "framer-motion";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
-  head: () => ({ meta: [{ title: "Login — AnimePlay Admin" }] }),
+  head: () => ({ meta: [{ title: "Sign in — AnimePlay" }] }),
 });
 
+type Mode = "signin" | "signup" | "forgot";
+
 function LoginPage() {
-  const { login, user } = useAuth();
+  const { login, signup, resetPassword, user } = useAuth();
   const navigate = useNavigate();
+  const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
-  if (user) {
-    navigate({ to: "/admin" });
-  }
+  if (user) navigate({ to: "/profile" });
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
     try {
-      await login(email, password);
-      toast.success("Welcome back");
-      navigate({ to: "/admin" });
+      if (mode === "signin") {
+        await login(email, password);
+        toast.success("Welcome back");
+        navigate({ to: "/profile" });
+      } else if (mode === "signup") {
+        await signup(email, password);
+        toast.success("Account created");
+        navigate({ to: "/profile" });
+      } else {
+        await resetPassword(email);
+        toast.success("Reset email sent");
+        setMode("signin");
+      }
     } catch (err: any) {
-      toast.error(err?.message ?? "Login failed");
+      toast.error(err?.message ?? "Failed");
     } finally {
       setBusy(false);
     }
   };
 
   return (
-    <main className="flex min-h-[80vh] items-center justify-center px-4">
-      <motion.form
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        onSubmit={onSubmit}
-        className="w-full max-w-sm rounded-2xl glass p-6"
-      >
-        <h1 className="text-xl font-semibold">Admin Login</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Sign in to manage your library.</p>
+    <main className="flex min-h-[80vh] items-center justify-center px-4 animate-fade-in">
+      <form onSubmit={onSubmit} className="w-full max-w-sm rounded-2xl glass p-6">
+        <h1 className="text-xl font-bold tracking-tight">
+          {mode === "signin" ? "Welcome back" : mode === "signup" ? "Join the Community" : "Reset password"}
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {mode === "signin"
+            ? "Sign in to comment, bookmark, and unlock VIP."
+            : mode === "signup"
+            ? "Create your free account in seconds."
+            : "We'll email you a reset link."}
+        </p>
 
         <label className="mt-5 block text-xs font-medium text-muted-foreground">Email</label>
         <input
@@ -51,30 +64,52 @@ function LoginPage() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 w-full rounded-lg bg-input/40 px-3 py-2 text-sm outline-none ring-1 ring-white/10 focus:ring-primary"
+          className="input mt-1"
         />
 
-        <label className="mt-4 block text-xs font-medium text-muted-foreground">Password</label>
-        <input
-          type="password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="mt-1 w-full rounded-lg bg-input/40 px-3 py-2 text-sm outline-none ring-1 ring-white/10 focus:ring-primary"
-        />
+        {mode !== "forgot" && (
+          <>
+            <label className="mt-4 block text-xs font-medium text-muted-foreground">Password</label>
+            <input
+              type="password"
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="input mt-1"
+            />
+          </>
+        )}
 
         <button
           type="submit"
           disabled={busy}
           className="mt-6 w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
         >
-          {busy ? "Signing in…" : "Sign in"}
+          {busy ? "Please wait…" : mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : "Send reset link"}
         </button>
 
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs">
+          {mode === "signin" ? (
+            <>
+              <button type="button" onClick={() => setMode("forgot")} className="text-muted-foreground hover:text-foreground">
+                Forgot password?
+              </button>
+              <button type="button" onClick={() => setMode("signup")} className="font-medium text-primary hover:underline">
+                Create account
+              </button>
+            </>
+          ) : (
+            <button type="button" onClick={() => setMode("signin")} className="text-muted-foreground hover:text-foreground">
+              ← Back to sign in
+            </button>
+          )}
+        </div>
+
         <Link to="/" className="mt-4 block text-center text-xs text-muted-foreground hover:text-foreground">
-          ← Back home
+          Continue browsing as guest
         </Link>
-      </motion.form>
+      </form>
     </main>
   );
 }

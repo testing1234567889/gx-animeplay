@@ -1,12 +1,18 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "../lib/auth-context";
-import { Film, LogOut, ArrowLeft } from "lucide-react";
+import { Film, LogOut, ArrowLeft, CreditCard, Users } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
   head: () => ({ meta: [{ title: "Admin — AnimePlay" }] }),
 });
+
+const tabs = [
+  { to: "/admin/animes", label: "Animes", icon: Film },
+  { to: "/admin/payments", label: "Payments", icon: CreditCard },
+  { to: "/admin/users", label: "Users", icon: Users },
+] as const;
 
 function AdminLayout() {
   const { user, loading, logout } = useAuth();
@@ -26,21 +32,14 @@ function AdminLayout() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-28 pt-4 md:pt-10 md:pb-12">
-      {/* Header — desktop only */}
       <header className="mb-6 hidden md:flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Link
-            to="/"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-card ring-1 ring-white/10 hover:ring-primary/40"
-            aria-label="Back to site"
-          >
+          <Link to="/" className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-card ring-1 ring-white/10 hover:ring-primary/40">
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
             <h1 className="text-xl md:text-2xl font-bold tracking-tight">Admin Dashboard</h1>
-            <p className="text-xs md:text-sm text-muted-foreground">
-              Signed in as {user.email}
-            </p>
+            <p className="text-xs md:text-sm text-muted-foreground">Signed in as {user.email}</p>
           </div>
         </div>
         <button
@@ -51,39 +50,45 @@ function AdminLayout() {
         </button>
       </header>
 
-      {/* Mobile compact header */}
+      {/* Desktop tabs */}
+      <nav className="mb-6 hidden md:flex gap-2">
+        {tabs.map((t) => (
+          <Link
+            key={t.to}
+            to={t.to}
+            className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-white/5 hover:text-foreground"
+            activeProps={{ className: "rounded-lg px-3 py-2 text-sm font-semibold bg-primary/15 text-primary ring-1 ring-primary/30" }}
+          >
+            {t.label}
+          </Link>
+        ))}
+      </nav>
+
       <header className="md:hidden mb-4 flex items-center justify-between">
-        <Link
-          to="/"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-card ring-1 ring-white/10"
-          aria-label="Back"
-        >
+        <Link to="/" className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-card ring-1 ring-white/10">
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <h1 className="text-base font-semibold">Admin</h1>
-        <span className="h-9 w-9" />
+        <button onClick={() => logout()} className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-card ring-1 ring-white/10">
+          <LogOut className="h-4 w-4" />
+        </button>
       </header>
 
       <Outlet />
 
-      {/* Mobile bottom bar */}
       <nav className="md:hidden fixed inset-x-0 bottom-0 z-40 glass border-t border-white/10 pb-[env(safe-area-inset-bottom)]">
-        <div className="mx-auto grid max-w-md grid-cols-2">
-          <Link
-            to="/admin/animes"
-            className="flex h-14 flex-col items-center justify-center gap-0.5 text-xs text-muted-foreground"
-            activeProps={{ className: "flex h-14 flex-col items-center justify-center gap-0.5 text-xs text-primary" }}
-          >
-            <Film className="h-5 w-5" />
-            Animes
-          </Link>
-          <button
-            onClick={() => logout()}
-            className="flex h-14 flex-col items-center justify-center gap-0.5 text-xs text-muted-foreground"
-          >
-            <LogOut className="h-5 w-5" />
-            Logout
-          </button>
+        <div className="mx-auto grid max-w-md grid-cols-3">
+          {tabs.map((t) => (
+            <Link
+              key={t.to}
+              to={t.to}
+              className="flex h-14 flex-col items-center justify-center gap-0.5 text-xs text-muted-foreground"
+              activeProps={{ className: "flex h-14 flex-col items-center justify-center gap-0.5 text-xs text-primary" }}
+            >
+              <t.icon className="h-5 w-5" />
+              {t.label}
+            </Link>
+          ))}
         </div>
       </nav>
     </div>

@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UpgradeRouteImport } from './routes/upgrade'
 import { Route as ScheduleRouteImport } from './routes/schedule'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
@@ -17,9 +18,16 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AnimeAnimeIdRouteImport } from './routes/anime.$animeId'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminAnimesRouteImport } from './routes/admin.animes'
 import { Route as WatchAnimeIdEpisodeIdRouteImport } from './routes/watch.$animeId.$episodeId'
 
+const UpgradeRoute = UpgradeRouteImport.update({
+  id: '/upgrade',
+  path: '/upgrade',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ScheduleRoute = ScheduleRouteImport.update({
   id: '/schedule',
   path: '/schedule',
@@ -60,6 +68,16 @@ const AnimeAnimeIdRoute = AnimeAnimeIdRouteImport.update({
   path: '/anime/$animeId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAnimesRoute = AdminAnimesRouteImport.update({
   id: '/animes',
   path: '/animes',
@@ -78,7 +96,10 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/schedule': typeof ScheduleRoute
+  '/upgrade': typeof UpgradeRoute
   '/admin/animes': typeof AdminAnimesRoute
+  '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
   '/admin/': typeof AdminIndexRoute
   '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
@@ -89,7 +110,10 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/schedule': typeof ScheduleRoute
+  '/upgrade': typeof UpgradeRoute
   '/admin/animes': typeof AdminAnimesRoute
+  '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
   '/admin': typeof AdminIndexRoute
   '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
@@ -102,7 +126,10 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/schedule': typeof ScheduleRoute
+  '/upgrade': typeof UpgradeRoute
   '/admin/animes': typeof AdminAnimesRoute
+  '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/anime/$animeId': typeof AnimeAnimeIdRoute
   '/admin/': typeof AdminIndexRoute
   '/watch/$animeId/$episodeId': typeof WatchAnimeIdEpisodeIdRoute
@@ -116,7 +143,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/schedule'
+    | '/upgrade'
     | '/admin/animes'
+    | '/admin/payments'
+    | '/admin/users'
     | '/anime/$animeId'
     | '/admin/'
     | '/watch/$animeId/$episodeId'
@@ -127,7 +157,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/schedule'
+    | '/upgrade'
     | '/admin/animes'
+    | '/admin/payments'
+    | '/admin/users'
     | '/anime/$animeId'
     | '/admin'
     | '/watch/$animeId/$episodeId'
@@ -139,7 +172,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/schedule'
+    | '/upgrade'
     | '/admin/animes'
+    | '/admin/payments'
+    | '/admin/users'
     | '/anime/$animeId'
     | '/admin/'
     | '/watch/$animeId/$episodeId'
@@ -152,12 +188,20 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
   ScheduleRoute: typeof ScheduleRoute
+  UpgradeRoute: typeof UpgradeRoute
   AnimeAnimeIdRoute: typeof AnimeAnimeIdRoute
   WatchAnimeIdEpisodeIdRoute: typeof WatchAnimeIdEpisodeIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/upgrade': {
+      id: '/upgrade'
+      path: '/upgrade'
+      fullPath: '/upgrade'
+      preLoaderRoute: typeof UpgradeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/schedule': {
       id: '/schedule'
       path: '/schedule'
@@ -214,6 +258,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnimeAnimeIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/payments': {
+      id: '/admin/payments'
+      path: '/payments'
+      fullPath: '/admin/payments'
+      preLoaderRoute: typeof AdminPaymentsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/animes': {
       id: '/admin/animes'
       path: '/animes'
@@ -233,11 +291,15 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAnimesRoute: typeof AdminAnimesRoute
+  AdminPaymentsRoute: typeof AdminPaymentsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAnimesRoute: AdminAnimesRoute,
+  AdminPaymentsRoute: AdminPaymentsRoute,
+  AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
@@ -250,6 +312,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
   ScheduleRoute: ScheduleRoute,
+  UpgradeRoute: UpgradeRoute,
   AnimeAnimeIdRoute: AnimeAnimeIdRoute,
   WatchAnimeIdEpisodeIdRoute: WatchAnimeIdEpisodeIdRoute,
 }

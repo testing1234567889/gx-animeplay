@@ -14,6 +14,8 @@ import { AuthProvider } from "../lib/auth-context";
 import { Toaster } from "sonner";
 import { TopNav } from "../components/TopNav";
 import { BottomNav } from "../components/BottomNav";
+import { AnnouncementBar } from "../components/AnnouncementBar";
+import { BannedOverlay } from "../components/BannedOverlay";
 
 function NotFoundComponent() {
   return (
@@ -110,11 +112,13 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <AnnouncementBar />
         {!hideTop && <TopNav />}
         <div key={pathname} className="animate-fade-in pb-24">
           <Outlet />
         </div>
         <BottomNav />
+        <BannedOverlay />
         <Toaster theme="dark" position="top-center" richColors />
       </AuthProvider>
     </QueryClientProvider>
