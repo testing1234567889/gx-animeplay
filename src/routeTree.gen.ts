@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UpgradeRouteImport } from './routes/upgrade'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ScheduleRouteImport } from './routes/schedule'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as BookmarkRouteImport } from './routes/bookmark'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -43,6 +44,11 @@ const ScheduleRoute = ScheduleRouteImport.update({
   path: '/schedule',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -64,9 +70,9 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileIndexRoute = ProfileIndexRouteImport.update({
-  id: '/profile/',
-  path: '/profile/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProfileRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/bookmark': typeof BookmarkRoute
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/schedule': typeof ScheduleRoute
   '/search': typeof SearchRoute
   '/upgrade': typeof UpgradeRoute
@@ -164,6 +171,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/bookmark': typeof BookmarkRoute
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/schedule': typeof ScheduleRoute
   '/search': typeof SearchRoute
   '/upgrade': typeof UpgradeRoute
@@ -186,6 +194,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/bookmark'
     | '/login'
+    | '/profile'
     | '/schedule'
     | '/search'
     | '/upgrade'
@@ -225,6 +234,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/bookmark'
     | '/login'
+    | '/profile'
     | '/schedule'
     | '/search'
     | '/upgrade'
@@ -246,11 +256,11 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   BookmarkRoute: typeof BookmarkRoute
   LoginRoute: typeof LoginRoute
+  ProfileRoute: typeof ProfileRouteWithChildren
   ScheduleRoute: typeof ScheduleRoute
   SearchRoute: typeof SearchRoute
   UpgradeRoute: typeof UpgradeRoute
   AnimeAnimeIdRoute: typeof AnimeAnimeIdRoute
-  ProfileIndexRoute: typeof ProfileIndexRoute
   WatchAnimeIdEpisodeIdRoute: typeof WatchAnimeIdEpisodeIdRoute
 }
 
@@ -275,6 +285,13 @@ declare module '@tanstack/react-router' {
       path: '/schedule'
       fullPath: '/schedule'
       preLoaderRoute: typeof ScheduleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -307,10 +324,10 @@ declare module '@tanstack/react-router' {
     }
     '/profile/': {
       id: '/profile/'
-      path: '/profile'
+      path: '/'
       fullPath: '/profile/'
       preLoaderRoute: typeof ProfileIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ProfileRoute
     }
     '/admin/': {
       id: '/admin/'
@@ -403,16 +420,33 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface ProfileRouteChildren {
+  ProfileEditRoute: typeof ProfileEditRoute
+  ProfileHistoryRoute: typeof ProfileHistoryRoute
+  ProfileSettingsRoute: typeof ProfileSettingsRoute
+  ProfileIndexRoute: typeof ProfileIndexRoute
+}
+
+const ProfileRouteChildren: ProfileRouteChildren = {
+  ProfileEditRoute: ProfileEditRoute,
+  ProfileHistoryRoute: ProfileHistoryRoute,
+  ProfileSettingsRoute: ProfileSettingsRoute,
+  ProfileIndexRoute: ProfileIndexRoute,
+}
+
+const ProfileRouteWithChildren =
+  ProfileRoute._addFileChildren(ProfileRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   BookmarkRoute: BookmarkRoute,
   LoginRoute: LoginRoute,
+  ProfileRoute: ProfileRouteWithChildren,
   ScheduleRoute: ScheduleRoute,
   SearchRoute: SearchRoute,
   UpgradeRoute: UpgradeRoute,
   AnimeAnimeIdRoute: AnimeAnimeIdRoute,
-  ProfileIndexRoute: ProfileIndexRoute,
   WatchAnimeIdEpisodeIdRoute: WatchAnimeIdEpisodeIdRoute,
 }
 export const routeTree = rootRouteImport
