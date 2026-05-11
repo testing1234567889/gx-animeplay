@@ -130,8 +130,17 @@ function AnimeDetail() {
                 </span>
               )}
             </div>
-            {anime.description && (
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{anime.description}</p>
+            {Array.isArray(anime.genres) && anime.genres.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {anime.genres.map((g) => (
+                  <span
+                    key={g}
+                    className="rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary"
+                  >
+                    {g}
+                  </span>
+                ))}
+              </div>
             )}
             <div className="mt-5 flex flex-wrap gap-2">
               {episodes && episodes[0] && (
@@ -157,6 +166,12 @@ function AnimeDetail() {
                 {bm ? "Bookmarked" : "Add to Bookmark"}
               </button>
             </div>
+            {anime.description && (
+              <>
+                <h3 className="text-white font-bold text-xl mt-8">Sinopsis {anime.title}</h3>
+                <p className="text-slate-300 text-sm md:text-base mt-2 leading-relaxed">{anime.description}</p>
+              </>
+            )}
           </div>
         </motion.div>
 
