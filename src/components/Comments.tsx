@@ -1,6 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { ref, get } from "firebase/database";
+import { db } from "../lib/firebase";
 import { useAuth } from "../lib/auth-context";
 import { addComment, subscribeComments } from "../lib/comments";
 import type { Comment } from "../lib/types";
@@ -8,12 +10,37 @@ import { VipBadge } from "./VipBadge";
 import { Skeleton } from "./Skeleton";
 
 export function Comments({ episodeId }: { episodeId: string }) {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const [items, setItems] = useState<Comment[] | null>(null);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
+  // Authoritative VIP status looked up from /users/{uid}/status — never trusted from comment doc.
+  const [vipMap, setVipMap] = useState<Record<string, boolean>>({});
 
   useEffect(() => subscribeComments(episodeId, setItems), [episodeId]);
+
+  useEffect(() => {
+    if (!items) return;
+    const unknown = Array.from(new Set(items.map((c) => c.uid))).filter((u) => !(u in vipMap));
+    if (unknown.length === 0) return;
+    let cancelled = false;
+    Promise.all(
+      unknown.map(async (uid) => {
+        try {
+          const s = await get(ref(db, `users/${uid}/status`));
+          return [uid, s.val() === "vip"] as const;
+        } catch {
+          return [uid, false] as const;
+        }
+      }),
+    ).then((entries) => {
+      if (cancelled) return;
+      setVipMap((m) => ({ ...m, ...Object.fromEntries(entries) }));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [items, vipMap]);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -92,7 +119,7 @@ export function Comments({ episodeId }: { episodeId: string }) {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="truncate text-sm font-semibold">{name}</span>
-                    <VipBadge vip={c.status === "vip"} />
+                    <VipBadge vip={!!vipMap[c.uid]} />
                     <span className="text-[11px] text-muted-foreground">
                       {new Date(c.created_at).toLocaleString()}
                     </span>
