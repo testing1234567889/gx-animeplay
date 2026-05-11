@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Crown, Lock, Maximize } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Crown, Lock } from "lucide-react";
 import { getAnime, subscribeEpisodes } from "../lib/anime-api";
 import type { Anime, Episode } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/watch/$animeId/$episodeId")({
   head: () => ({ meta: [{ title: "Watch — AnimePlay" }] }),
 });
 
-type ServerKey = "dm" | "okru";
+type ServerKey = "s1" | "s2" | "s3";
 const VIP_DELAY_MS = 30 * 60 * 1000;
 
 function WatchPage() {
