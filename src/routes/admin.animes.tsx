@@ -263,6 +263,22 @@ function AnimesAdmin() {
                 className="input"
               />
             </Field>
+            <Field label="Schedule Day">
+              <select
+                value={form.schedule_day}
+                onChange={(e) => setForm({ ...form, schedule_day: e.target.value })}
+                className="input"
+              >
+                <option value="">—</option>
+                <option>Monday</option>
+                <option>Tuesday</option>
+                <option>Wednesday</option>
+                <option>Thursday</option>
+                <option>Friday</option>
+                <option>Saturday</option>
+                <option>Sunday</option>
+              </select>
+            </Field>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
             {(["isTrending", "isLatest", "isMovie", "isUpcoming"] as const).map((k) => (
