@@ -90,10 +90,19 @@ Set `users/{yourUid}/isAdmin = true` once via the Firebase Console (Database
 tab) before deploying these rules. After that, only existing admins can grant
 admin to others.
 
-## VIP embed gating (recommended hardening)
+## VIP embed gating (server-enforced)
 
-Client-side `vip_only` checks can be bypassed in DevTools. For full
-enforcement, move embed-URL generation to a TanStack Start server function
-that verifies the Firebase ID token and reads the user's `status` server-side
-before returning the embed ID. Keep `dailymotion_id` / `okru_id` out of any
-client payload for locked episodes.
+The watch page now fetches embed IDs for `vip_only` episodes through the
+TanStack Start server function `getVipEmbed`
+(`src/lib/vip-embed.functions.ts`). It verifies the Firebase ID token via
+Google Identity Toolkit, reads `/users/{uid}/status` from RTDB REST with the
+token (so these rules apply), and only returns `dailymotion_id` / `okru_id`
+when the caller is VIP or the 30-minute early-access window has elapsed.
+
+For maximum protection, move VIP embed IDs out of `/episodes/{id}` into a
+separate node such as `/vip_embeds/{episodeId}` whose `.read` requires
+`root.child('users').child(auth.uid).child('status').val() === 'vip'`, and
+update `getVipEmbed` to read from there. Until then, VIP embed IDs are
+technically fetchable via direct RTDB reads by any authenticated user
+because `/episodes` is world-readable to signed-in users.
+
