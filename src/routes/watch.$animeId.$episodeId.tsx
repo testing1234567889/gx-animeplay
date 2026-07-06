@@ -232,7 +232,7 @@ function WatchPage() {
     { k: "s3", label: s3Name, available: !!s3Data },
   ];
   const activeServerLabel = servers.find((s) => s.k === server)?.label ?? "Server";
-  const downloadUrl = current?.download_url?.trim() || "";
+  const downloadUrl = embed?.download_url || "";
 
   // Synopsis clamp logic
   const synopsis = anime?.description ?? "";
