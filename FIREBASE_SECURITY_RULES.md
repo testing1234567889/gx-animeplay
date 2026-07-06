@@ -29,6 +29,8 @@ Firebase SDK directly. You MUST deploy these rules in the Firebase Console
     "payments": {
       // Only admins can list all payments.
       ".read": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true",
+      // Enables the client-side per-user query (orderByChild('uid').equalTo(uid)).
+      ".indexOn": ["uid"],
       "$pid": {
         ".read":  "auth != null && (data.child('uid').val() === auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() === true)",
         ".write": "auth != null && (
