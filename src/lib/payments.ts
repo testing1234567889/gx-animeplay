@@ -1,4 +1,4 @@
-import { ref, push, set, update, onValue, get } from "firebase/database";
+import { ref, push, set, update, onValue, get, query, orderByChild, equalTo } from "firebase/database";
 import { db } from "./firebase";
 import { setUserPaymentStatus, setUserStatus } from "./users";
 import type { Payment } from "./types";
@@ -34,12 +34,13 @@ export function subscribePayments(cb: (list: Payment[]) => void) {
 }
 
 export function subscribeUserPayments(uid: string, cb: (list: Payment[]) => void) {
-  return onValue(ref(db, "payments"), (snap) => {
+  // Query only this user's payments — avoids downloading the entire /payments node.
+  // Requires an index on 'uid' in Firebase RTDB rules ("payments": { ".indexOn": ["uid"] }).
+  const q = query(ref(db, "payments"), orderByChild("uid"), equalTo(uid));
+  return onValue(q, (snap) => {
     const v = snap.val() as Record<string, any> | null;
     const list = v
-      ? Object.entries(v)
-          .map(([id, val]) => ({ id, ...(val as object) } as Payment))
-          .filter((p) => p.uid === uid)
+      ? Object.entries(v).map(([id, val]) => ({ id, ...(val as object) } as Payment))
       : [];
     list.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
     cb(list);
@@ -58,12 +59,13 @@ export async function rejectPayment(p: Payment, reason: string) {
 }
 
 export async function getLatestPendingForUser(uid: string) {
-  const snap = await get(ref(db, "payments"));
+  // Scoped query — do not fetch the full /payments node from the client.
+  const q = query(ref(db, "payments"), orderByChild("uid"), equalTo(uid));
+  const snap = await get(q);
   const v = snap.val() as Record<string, any> | null;
   if (!v) return null;
   const mine = Object.entries(v)
     .map(([id, val]) => ({ id, ...(val as object) } as Payment))
-    .filter((p) => p.uid === uid)
     .sort((a, b) => b.created_at - a.created_at);
   return mine[0] ?? null;
 }
