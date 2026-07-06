@@ -208,3 +208,20 @@
 .input:focus {
   box-shadow: inset 0 0 0 1px var(--color-primary);
 }
+
+/* Hide the "Edit with Lovable" / "Made with Lovable" badge without breaking layout. */
+#lovable-badge,
+#lovable-badge-container,
+a[href*="lovable.dev"][target="_blank"],
+a[href*="lovable.dev/projects"],
+[data-lovable-badge],
+[class*="lovable-badge" i] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+}
