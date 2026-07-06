@@ -4,6 +4,8 @@ import { Crown, Lock, Loader2, Server as ServerIcon, Download, Flag } from "luci
 import { toast } from "sonner";
 import { getAnime, subscribeEpisodes } from "../lib/anime-api";
 import { reportVideo } from "../lib/progress";
+import { getVipEmbed } from "../lib/vip-embed.functions";
+import { auth } from "../lib/firebase";
 import type { Anime, Episode } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
 import { Comments } from "../components/Comments";
@@ -12,6 +14,16 @@ import { recordHistory } from "../lib/history";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "../components/ui/dialog";
+
+type EmbedPayload = {
+  server1_data: string;
+  server2_data: string;
+  server3_data: string;
+  server1_name: string;
+  server2_name: string;
+  server3_name: string;
+  download_url: string;
+};
 
 export const Route = createFileRoute("/watch/$animeId/$episodeId")({
   component: WatchPage,
