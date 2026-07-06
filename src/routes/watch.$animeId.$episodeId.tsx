@@ -68,12 +68,53 @@ function WatchPage() {
 
   const current = useMemo(() => episodes?.find((e) => e.id === episodeId) ?? null, [episodes, episodeId]);
 
-  const s1Data = current?.server1_data || current?.dailymotion_id || "";
-  const s2Data = current?.server2_data || current?.okru_id || "";
-  const s3Data = current?.server3_data || "";
-  const s1Name = current?.server1_name?.trim() || "Server 1";
-  const s2Name = current?.server2_name?.trim() || "Server 2";
-  const s3Name = current?.server3_name?.trim() || "Server 3";
+  // Server-side gated embed payload. For vip_only episodes we do NOT trust
+  // client-side data — fetch through a server function that verifies the
+  // Firebase ID token and reads user status server-side.
+  const [embed, setEmbed] = useState<EmbedPayload | null>(null);
+  const [embedError, setEmbedError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setEmbed(null);
+    setEmbedError(null);
+    if (!current) return;
+    // Non-VIP episodes: use client data as before.
+    if (!current.vip_only) {
+      setEmbed({
+        server1_data: current.server1_data || current.dailymotion_id || "",
+        server2_data: current.server2_data || current.okru_id || "",
+        server3_data: current.server3_data || "",
+        server1_name: current.server1_name?.trim() || "Server 1",
+        server2_name: current.server2_name?.trim() || "Server 2",
+        server3_name: current.server3_name?.trim() || "Server 3",
+        download_url: current.download_url?.trim() || "",
+      });
+      return;
+    }
+    // VIP episodes: enforce server-side.
+    let cancelled = false;
+    (async () => {
+      try {
+        const idToken = await auth.currentUser?.getIdToken();
+        if (!idToken) {
+          setEmbedError("Sign in required");
+          return;
+        }
+        const payload = await getVipEmbed({ data: { idToken, animeId, episodeId } });
+        if (!cancelled) setEmbed(payload as EmbedPayload);
+      } catch (e: any) {
+        if (!cancelled) setEmbedError(e?.message ?? "Locked");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [current, animeId, episodeId]);
+
+  const s1Data = embed?.server1_data || "";
+  const s2Data = embed?.server2_data || "";
+  const s3Data = embed?.server3_data || "";
+  const s1Name = embed?.server1_name || "Server 1";
+  const s2Name = embed?.server2_name || "Server 2";
+  const s3Name = embed?.server3_name || "Server 3";
 
   const availability: Record<ServerKey, string> = { s1: s1Data, s2: s2Data, s3: s3Data };
 
@@ -89,7 +130,7 @@ function WatchPage() {
     if (anime?.title && current) document.title = `${anime.title} — Ep ${current.number} | AnimePlay`;
   }, [anime?.title, current]);
 
-  // VIP gating
+  // VIP gating (kept as UX affordance — real gate is the server function above).
   const isVip = profile?.status === "vip";
   const release = current?.release_time ?? current?.created_at ?? 0;
   const unlockAt = release + VIP_DELAY_MS;
