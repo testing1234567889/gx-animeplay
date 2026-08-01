@@ -11,6 +11,8 @@ import { Skeleton } from "../components/Skeleton";
 import { Comments } from "../components/Comments";
 import { useAuth } from "../lib/auth-context";
 import { recordHistory } from "../lib/history";
+import { fetchAnimeMeta, fetchEpisodeMeta, clampDescription, safeImage, SITE_URL } from "../lib/seo-data";
+
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "../components/ui/dialog";
