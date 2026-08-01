@@ -2,16 +2,10 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 
-// The Firebase Web API key is a publishable identifier, but it is injected at
-// build time from the GOOGLE_API_KEY secret so it never lives in source.
-declare const __FIREBASE_API_KEY__: string;
-const apiKey =
-  typeof __FIREBASE_API_KEY__ !== "undefined" && __FIREBASE_API_KEY__
-    ? __FIREBASE_API_KEY__
-    : "";
-
+// Firebase Web API keys are publishable identifiers (not secrets); access is
+// enforced by the Realtime Database security rules in FIREBASE_SECURITY_RULES.md.
 const firebaseConfig = {
-  apiKey,
+  apiKey: "AIzaSyDpvbDFwLGrSzqEZuDvqvjUQjPQhCwaSqg",
   authDomain: "lovable-animestream.firebaseapp.com",
   databaseURL: "https://lovable-animestream-default-rtdb.firebaseio.com",
   projectId: "lovable-animestream",

@@ -12,10 +12,4 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
-  vite: {
-    define: {
-      // Firebase Web API key (publishable) injected from the GOOGLE_API_KEY secret.
-      __FIREBASE_API_KEY__: JSON.stringify(process.env["GOOGLE_API_KEY"] ?? ""),
-    },
-  },
 });
