@@ -108,7 +108,6 @@ function WatchPage() {
   const [episodes, setEpisodes] = useState<Episode[] | null>(null);
   const [server, setServer] = useState<ServerKey>("s1");
   const [now, setNow] = useState(Date.now());
-  const [synopsisOpen, setSynopsisOpen] = useState(false);
   const [serverDialog, setServerDialog] = useState(false);
   const [reportDialog, setReportDialog] = useState(false);
 
