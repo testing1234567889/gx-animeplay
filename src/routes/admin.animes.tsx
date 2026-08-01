@@ -372,9 +372,6 @@ type EpForm = {
   server2_data: string; server2_name: string;
   server3_data: string; server3_name: string;
   vip_only: boolean;
-  release_time: string;
-  skipStart: string;
-  skipEnd: string;
   download_url: string;
 };
 const emptyEp: EpForm = {
@@ -382,17 +379,9 @@ const emptyEp: EpForm = {
   server1_data: "", server1_name: "",
   server2_data: "", server2_name: "",
   server3_data: "", server3_name: "",
-  vip_only: false, release_time: "",
-  skipStart: "", skipEnd: "",
+  vip_only: false,
   download_url: "",
 };
-
-function toLocalInput(ms?: number) {
-  if (!ms) return "";
-  const d = new Date(ms);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 
 function EpisodesManager({ anime }: { anime: Anime }) {
   const [eps, setEps] = useState<Episode[] | null>(null);
@@ -415,21 +404,17 @@ function EpisodesManager({ anime }: { anime: Anime }) {
     setBusy(true);
     try {
       const num = Number(form.number) || 0;
-      const release_ms = form.release_time ? new Date(form.release_time).getTime() : Date.now();
       const payload = {
         anime_id: anime.id,
         number: num,
         title: form.title,
-        server1_data: form.server1_data,
-        server1_name: form.server1_name,
-        server2_data: form.server2_data,
-        server2_name: form.server2_name,
-        server3_data: form.server3_data,
-        server3_name: form.server3_name,
+        server1_data: form.server1_data.trim(),
+        server1_name: form.server1_name.trim(),
+        server2_data: form.server2_data.trim(),
+        server2_name: form.server2_name.trim(),
+        server3_data: form.server3_data.trim(),
+        server3_name: form.server3_name.trim(),
         vip_only: form.vip_only,
-        release_time: release_ms,
-        skipStart: form.skipStart ? Number(form.skipStart) : 0,
-        skipEnd: form.skipEnd ? Number(form.skipEnd) : 0,
         download_url: form.download_url.trim(),
       };
       if (editing) {
@@ -495,7 +480,8 @@ function EpisodesManager({ anime }: { anime: Anime }) {
                     {ep.title || `Episode ${ep.number}`}
                   </div>
                   <div className="truncate text-[11px] text-muted-foreground">
-                    S1: {ep.server1_data || ep.dailymotion_id || "—"} · S2: {ep.server2_data || ep.okru_id || "—"} · S3: {ep.server3_data || "—"}
+                    {embedHost(ep.server1_data || ep.dailymotion_id)} · {embedHost(ep.server2_data || ep.okru_id)} · {embedHost(ep.server3_data)}
+                    {ep.vip_only ? " · VIP 30m" : ""}
                   </div>
                 </div>
                 <button
@@ -511,9 +497,6 @@ function EpisodesManager({ anime }: { anime: Anime }) {
                       server3_data: ep.server3_data ?? "",
                       server3_name: ep.server3_name ?? "",
                       vip_only: !!ep.vip_only,
-                      release_time: toLocalInput(ep.release_time),
-                      skipStart: ep.skipStart != null ? String(ep.skipStart) : "",
-                      skipEnd: ep.skipEnd != null ? String(ep.skipEnd) : "",
                       download_url: ep.download_url ?? "",
                     });
                   }}
@@ -570,12 +553,17 @@ function EpisodesManager({ anime }: { anime: Anime }) {
             />
           </Field>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <Field label="Server 1 Data (DM Video ID)">
+        <p className="mb-2 mt-1 rounded-lg bg-primary/10 px-3 py-2 text-[11px] leading-relaxed text-primary">
+          Tempel <strong>full URL embed</strong> (atau kode &lt;iframe&gt;) dari platform apa pun —
+          Dailymotion, OK.ru, YouTube, Filemoon, Mp4upload, atau link .mp4 langsung. Urutan server
+          bebas; yang penting linknya valid.
+        </p>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <Field label="Server 1 — Embed URL">
             <input
               value={form.server1_data}
               onChange={(e) => setForm({ ...form, server1_data: e.target.value })}
-              placeholder="x8abcde"
+              placeholder="https://..."
               className="input"
             />
           </Field>
@@ -587,11 +575,11 @@ function EpisodesManager({ anime }: { anime: Anime }) {
               className="input"
             />
           </Field>
-          <Field label="Server 2 Data (OK.ru ID)">
+          <Field label="Server 2 — Embed URL">
             <input
               value={form.server2_data}
               onChange={(e) => setForm({ ...form, server2_data: e.target.value })}
-              placeholder="1234567890123"
+              placeholder="https://..."
               className="input"
             />
           </Field>
@@ -603,7 +591,7 @@ function EpisodesManager({ anime }: { anime: Anime }) {
               className="input"
             />
           </Field>
-          <Field label="Server 3 Data (Embed URL)">
+          <Field label="Server 3 — Embed URL">
             <input
               value={form.server3_data}
               onChange={(e) => setForm({ ...form, server3_data: e.target.value })}
@@ -620,36 +608,6 @@ function EpisodesManager({ anime }: { anime: Anime }) {
             />
           </Field>
         </div>
-        <Field label="Release Time (basis for VIP early-access timer)">
-          <input
-            type="datetime-local"
-            value={form.release_time}
-            onChange={(e) => setForm({ ...form, release_time: e.target.value })}
-            className="input"
-          />
-        </Field>
-        <div className="grid grid-cols-2 gap-2">
-          <Field label="Skip Intro Start (sec)">
-            <input
-              type="number"
-              min={0}
-              value={form.skipStart}
-              onChange={(e) => setForm({ ...form, skipStart: e.target.value })}
-              placeholder="e.g. 30"
-              className="input"
-            />
-          </Field>
-          <Field label="Skip Intro End (sec)">
-            <input
-              type="number"
-              min={0}
-              value={form.skipEnd}
-              onChange={(e) => setForm({ ...form, skipEnd: e.target.value })}
-              placeholder="e.g. 90"
-              className="input"
-            />
-          </Field>
-        </div>
         <Field label="Download URL (optional)">
           <input
             value={form.download_url}
@@ -658,14 +616,20 @@ function EpisodesManager({ anime }: { anime: Anime }) {
             className="input"
           />
         </Field>
-        <label className="mb-3 flex cursor-pointer items-center gap-2 rounded-lg bg-input/40 px-3 py-2 text-xs ring-1 ring-yellow-400/30">
+        <label className="mb-3 flex cursor-pointer items-start gap-2 rounded-lg bg-input/40 px-3 py-2 text-xs ring-1 ring-yellow-400/30">
           <input
             type="checkbox"
+            className="mt-0.5"
             checked={form.vip_only}
             onChange={(e) => setForm({ ...form, vip_only: e.target.checked })}
           />
-          <span className="font-semibold text-yellow-300">VIP Only</span>
-          <span className="text-muted-foreground">— free users wait 30 min from release</span>
+          <span>
+            <span className="font-semibold text-yellow-300">VIP Only</span>
+            <span className="block text-muted-foreground">
+              Hanya VIP yang bisa menonton selama 30 menit sejak episode dipublish, setelah itu
+              otomatis terbuka untuk semua user.
+            </span>
+          </span>
         </label>
         <button
           type="submit"
