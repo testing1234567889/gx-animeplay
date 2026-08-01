@@ -7,6 +7,7 @@ import { getAnime, subscribeEpisodes } from "../lib/anime-api";
 import { rateAnime } from "../lib/progress";
 import type { Anime, Episode } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
+import { ExpandableText } from "../components/ExpandableText";
 import { useAuth } from "../lib/auth-context";
 import { addBookmark, removeBookmark, isBookmarkedOnce } from "../lib/bookmarks";
 import { fetchAnimeMeta, clampDescription, safeImage, SITE_URL } from "../lib/seo-data";
@@ -77,7 +78,6 @@ function AnimeDetail() {
   const [bm, setBm] = useState(false);
   const [bmBusy, setBmBusy] = useState(false);
   const [epQuery, setEpQuery] = useState("");
-  const [descOpen, setDescOpen] = useState(false);
 
   useEffect(() => {
     getAnime(animeId).then(setAnime);
