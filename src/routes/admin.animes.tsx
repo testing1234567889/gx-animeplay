@@ -13,6 +13,7 @@ import {
 } from "../lib/anime-api";
 import type { Anime, Episode } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
+import { embedHost } from "../lib/embed";
 import { Pencil, Trash2, Plus, X, ListVideo } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
