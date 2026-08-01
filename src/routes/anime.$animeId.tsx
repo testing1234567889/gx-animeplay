@@ -9,6 +9,8 @@ import type { Anime, Episode } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
 import { useAuth } from "../lib/auth-context";
 import { addBookmark, removeBookmark, isBookmarkedOnce } from "../lib/bookmarks";
+import { fetchAnimeMeta, clampDescription, safeImage, SITE_URL } from "../lib/seo-data";
+
 
 export const Route = createFileRoute("/anime/$animeId")({
   component: AnimeDetail,
