@@ -10,15 +10,12 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
-import { AuthProvider, useAuth } from "../lib/auth-context";
+import { AuthProvider } from "../lib/auth-context";
 import { Toaster } from "sonner";
 import { TopNav } from "../components/TopNav";
 import { BottomNav } from "../components/BottomNav";
 import { AnnouncementBar } from "../components/AnnouncementBar";
 import { BannedOverlay } from "../components/BannedOverlay";
-import { EmailVerificationPending } from "../components/EmailVerificationPending";
-
-const PROTECTED_PREFIXES = ["/profile", "/bookmark", "/admin", "/upgrade"];
 
 function NotFoundComponent() {
   return (
@@ -125,18 +122,15 @@ function RootComponent() {
 
 function AppShell() {
   const { pathname } = useLocation();
-  const { user } = useAuth();
   const hideTop = pathname.startsWith("/admin") || pathname.startsWith("/login");
   const hideBottom = pathname.startsWith("/admin") || pathname.startsWith("/login") || pathname.startsWith("/watch");
-  const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
-  const needsVerify = !!user && !user.emailVerified && isProtected;
 
   return (
     <div onContextMenu={(e) => e.preventDefault()} className="flex min-h-[100dvh] flex-col overflow-x-hidden">
       <AnnouncementBar />
       {!hideTop && <TopNav />}
       <main className={"flex-1 " + (hideBottom ? "" : "pb-16")}>
-        {needsVerify ? <EmailVerificationPending /> : <Outlet />}
+        <Outlet />
       </main>
       <BottomNav />
       <BannedOverlay />

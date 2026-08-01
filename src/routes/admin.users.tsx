@@ -1,7 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { setUserBanned, setUserStatus, setUserRole, subscribeAllUsers } from "../lib/users";
+import {
+  setUserBanned,
+  setUserStatus,
+  setUserRole,
+  setAdminFlag,
+  subscribeAllUsers,
+  subscribeAdminMap,
+} from "../lib/users";
 import type { UserProfile } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
 import { RoleBadges, rolesFromProfile } from "../components/RoleBadges";
@@ -16,10 +23,15 @@ function UsersAdmin() {
   const [reasonFor, setReasonFor] = useState<UserProfile | null>(null);
   const [reason, setReason] = useState("");
 
+  const [adminMap, setAdminMap] = useState<Record<string, boolean>>({});
+
   useEffect(() => subscribeAllUsers(setUsers), []);
+  useEffect(() => subscribeAdminMap(setAdminMap), []);
 
   const list = users?.filter((u) =>
-    !q.trim() ? true : (u.email ?? "").toLowerCase().includes(q.toLowerCase()),
+    !q.trim()
+      ? true
+      : `${u.email ?? ""} ${u.displayName ?? ""} ${u.uid}`.toLowerCase().includes(q.trim().toLowerCase()),
   ) ?? null;
 
   const toggleVip = async (u: UserProfile) => {
@@ -54,7 +66,7 @@ function UsersAdmin() {
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search email…"
+          placeholder="Cari email / nama / UID…"
           className="input max-w-[220px]"
         />
       </div>
@@ -66,7 +78,16 @@ function UsersAdmin() {
       ) : (
         <ul className="space-y-2">
           {list.map((u) => {
-            const toggleRole = async (role: "isAdmin" | "isModerator" | "isBeta") => {
+            const isAdminUser = adminMap[u.uid] === true;
+            const toggleAdmin = async () => {
+              try {
+                await setAdminFlag(u.uid, !isAdminUser);
+                toast.success(`Admin ${!isAdminUser ? "granted" : "revoked"}`);
+              } catch (e: any) {
+                toast.error(e?.message ?? "Only the root admin can change admins");
+              }
+            };
+            const toggleRole = async (role: "isModerator" | "isBeta") => {
               try {
                 await setUserRole(u.uid, role, !u[role]);
                 toast.success(`${role} ${!u[role] ? "enabled" : "disabled"}`);
@@ -81,7 +102,11 @@ function UsersAdmin() {
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-semibold">{u.email || u.uid}</div>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
-                    <RoleBadges roles={rolesFromProfile(u)} />
+                    <RoleBadges roles={rolesFromProfile({ ...u, isAdmin: isAdminUser })} />
+                    <span className={"rounded px-1.5 py-0.5 font-semibold " + (u.isvip || u.status === "vip" ? "bg-yellow-500/20 text-yellow-300" : "bg-white/10")}>
+                      isvip: {String(!!(u.isvip ?? u.status === "vip"))}
+                    </span>
+                    <span className="truncate font-mono opacity-60">{u.uid}</span>
                     {u.banned && <span className="rounded-full bg-red-500/20 px-2 py-0.5 font-bold uppercase tracking-wider text-red-300 ring-1 ring-red-400/40">BANNED</span>}
                     {u.payment_status && u.payment_status !== "none" && (
                       <span className="rounded bg-white/10 px-1.5 py-0.5">pay: {u.payment_status}</span>
@@ -90,7 +115,7 @@ function UsersAdmin() {
                 </div>
               </div>
               <div className="mt-3 flex flex-wrap gap-1.5">
-                <RoleToggle active={!!u.isAdmin} label="Admin" onClick={() => toggleRole("isAdmin")} accent="red" />
+                <RoleToggle active={isAdminUser} label="Admin" onClick={toggleAdmin} accent="red" />
                 <RoleToggle active={!!u.isModerator} label="Mod" onClick={() => toggleRole("isModerator")} accent="green" />
                 <RoleToggle active={!!u.isBeta} label="Beta" onClick={() => toggleRole("isBeta")} accent="purple" />
                 <button

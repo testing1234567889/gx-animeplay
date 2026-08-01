@@ -1,18 +1,23 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 
+// Firebase Web API keys are publishable identifiers (not secrets); access is
+// enforced by the Realtime Database security rules in FIREBASE_SECURITY_RULES.md.
 const firebaseConfig = {
-  apiKey: "AIzaSyBpsA9-X9ckiyz2erxurJdLOzv-Deoi7R0",
-  authDomain: "animeplay-738a4.firebaseapp.com",
-  databaseURL: "https://animeplay-738a4-default-rtdb.firebaseio.com",
-  projectId: "animeplay-738a4",
-  storageBucket: "animeplay-738a4.firebasestorage.app",
-  messagingSenderId: "129738568083",
-  appId: "1:129738568083:web:d144ad8d1a66d893213866",
-  measurementId: "G-J6G96TPMHX",
+  apiKey: "AIzaSyDpvbDFwLGrSzqEZuDvqvjUQjPQhCwaSqg",
+  authDomain: "lovable-animestream.firebaseapp.com",
+  databaseURL: "https://lovable-animestream-default-rtdb.firebaseio.com",
+  projectId: "lovable-animestream",
+  storageBucket: "lovable-animestream.firebasestorage.app",
+  messagingSenderId: "1019848045009",
+  appId: "1:1019848045009:web:958a3b6ec13ecfec1df0f0",
+  measurementId: "G-V50DSDQECW",
 };
 
 export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getDatabase(app);
+
+export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: "select_account" });

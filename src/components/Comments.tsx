@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { ref, get } from "firebase/database";
-import { Pin, Reply as ReplyIcon, Trash2, Flag, EyeOff, Send, ArrowUp } from "lucide-react";
+import { Pin, Reply as ReplyIcon, Trash2, Flag, EyeOff, Send, ArrowUp, Ban } from "lucide-react";
 import { db } from "../lib/firebase";
 import { useAuth } from "../lib/auth-context";
 import {
@@ -12,6 +12,7 @@ import {
   setCommentPinned,
 } from "../lib/comments";
 import { reportComment } from "../lib/progress";
+import { setUserBanned } from "../lib/users";
 import type { Comment, UserProfile } from "../lib/types";
 import { RoleBadges, rolesFromProfile } from "./RoleBadges";
 import { Skeleton } from "./Skeleton";
@@ -195,8 +196,21 @@ export function Comments({ episodeId, onSeek }: Props) {
     catch (e: any) { toast.error(e?.message ?? "Failed"); }
   };
   const onDelete = async (c: Comment) => {
-    try { await deleteComment(episodeId, c.id); }
-    catch (e: any) { toast.error(e?.message ?? "Failed"); }
+    try {
+      await deleteComment(episodeId, c.id);
+      toast.success("Komentar dihapus");
+    } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+  };
+
+  // Admin moderation available on every page that renders comments.
+  const onBan = async (c: Comment) => {
+    const author = roleMap[c.uid];
+    const banned = !!author?.banned;
+    try {
+      await setUserBanned(c.uid, !banned, banned ? "" : "Pelanggaran pedoman komunitas");
+      setRoleMap((m) => ({ ...m, [c.uid]: { ...(m[c.uid] ?? { uid: c.uid }), banned: !banned } }));
+      toast.success(banned ? "User di-unban" : "User dibanned");
+    } catch (e: any) { toast.error(e?.message ?? "Failed"); }
   };
 
   const renderItem = (c: Comment, isReply = false) => {
@@ -295,6 +309,14 @@ export function Comments({ episodeId, onSeek }: Props) {
                   className="inline-flex items-center gap-1 text-muted-foreground hover:text-primary"
                 >
                   <Pin className="h-3.5 w-3.5" /> {c.pinned ? "Unpin" : "Pin"}
+                </button>
+              )}
+              {isAdmin && user?.uid !== c.uid && (
+                <button
+                  onClick={() => onBan(c)}
+                  className="inline-flex items-center gap-1 text-muted-foreground hover:text-red-400"
+                >
+                  <Ban className="h-3.5 w-3.5" /> {roleMap[c.uid]?.banned ? "Unban" : "Ban user"}
                 </button>
               )}
               {canDelete && (
