@@ -3,7 +3,7 @@
 // browser and inside the server runtime, where the realtime SDK's socket
 // transport is unavailable.
 
-const DB_URL = "https://animeplay-738a4-default-rtdb.firebaseio.com";
+const DB_URL = "https://lovable-animestream-default-rtdb.firebaseio.com";
 
 export type SeoAnime = {
   title?: string;

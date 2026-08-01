@@ -17,8 +17,7 @@ import { z } from "zod";
  * enforcement layer that complements them.
  */
 
-const FIREBASE_API_KEY = "AIzaSyBpsA9-X9ckiyz2erxurJdLOzv-Deoi7R0";
-const FIREBASE_DB_URL = "https://animeplay-738a4-default-rtdb.firebaseio.com";
+const FIREBASE_DB_URL = "https://lovable-animestream-default-rtdb.firebaseio.com";
 const VIP_DELAY_MS = 30 * 60 * 1000;
 
 const InputSchema = z.object({
@@ -32,7 +31,7 @@ export const getVipEmbed = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     // 1. Verify Firebase ID token
     const verifyRes = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${FIREBASE_API_KEY}`,
+      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${process.env["GOOGLE_API_KEY"] ?? ""}`,
       {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -77,10 +76,12 @@ export const getVipEmbed = createServerFn({ method: "POST" })
 
     if (ep.vip_only && !windowElapsed) {
       const userRes = await fetch(
-        `${FIREBASE_DB_URL}/users/${encodeURIComponent(uid)}/status.json?auth=${encodeURIComponent(data.idToken)}`,
+        `${FIREBASE_DB_URL}/users/${encodeURIComponent(uid)}.json?auth=${encodeURIComponent(data.idToken)}`,
       );
-      const status = userRes.ok ? ((await userRes.json()) as string | null) : null;
-      if (status !== "vip") {
+      const u = userRes.ok
+        ? ((await userRes.json()) as { status?: string; isvip?: boolean } | null)
+        : null;
+      if (u?.status !== "vip" && u?.isvip !== true) {
         throw new Response("VIP subscription required", { status: 403 });
       }
     }
