@@ -365,7 +365,7 @@ function WatchPage() {
         ) : (
           <>
             {renderPlayer()}
-            {playerLoading && (
+            {playerLoading && !!availability[server] && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/50 pointer-events-none">
                 <Loader2 className="h-10 w-10 animate-spin text-primary" />
               </div>
