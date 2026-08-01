@@ -1,22 +1,44 @@
 import { ref, get, set, update, onValue } from "firebase/database";
+import type { User } from "firebase/auth";
 import { db } from "./firebase";
 import type { UserProfile } from "./types";
 
-export async function ensureUserProfile(uid: string, email: string | null) {
-  const r = ref(db, `users/${uid}`);
+/**
+ * Creates the RTDB profile node on first sign-in (Google or admin email).
+ * Always guarantees the `isvip` flag node exists.
+ */
+export async function ensureUserProfile(u: User) {
+  const r = ref(db, `users/${u.uid}`);
   const snap = await get(r);
   if (!snap.exists()) {
     const initial: Omit<UserProfile, "uid"> = {
-      email,
+      email: u.email ?? null,
+      displayName: u.displayName ?? null,
+      photoURL: u.photoURL ?? null,
       status: "free",
+      isvip: false,
       banned: false,
       payment_status: "none",
       created_at: Date.now(),
     };
     await set(r, initial);
-    return { uid, ...initial } as UserProfile;
+    return { uid: u.uid, ...initial } as UserProfile;
   }
-  return { uid, ...(snap.val() as object) } as UserProfile;
+
+  const val = (snap.val() ?? {}) as Partial<UserProfile>;
+  const patch: Record<string, unknown> = {};
+  if (val.isvip === undefined) patch["isvip"] = val.status === "vip";
+  if (!val.email && u.email) patch["email"] = u.email;
+  if (!val.displayName && u.displayName) patch["displayName"] = u.displayName;
+  if (!val.photoURL && u.photoURL) patch["photoURL"] = u.photoURL;
+  if (Object.keys(patch).length) {
+    try {
+      await update(r, patch);
+    } catch (e) {
+      console.error("profile backfill failed", e);
+    }
+  }
+  return { uid: u.uid, ...val, ...patch } as UserProfile;
 }
 
 export function subscribeUserProfile(uid: string, cb: (p: UserProfile | null) => void) {
@@ -24,6 +46,15 @@ export function subscribeUserProfile(uid: string, cb: (p: UserProfile | null) =>
     if (!snap.exists()) return cb(null);
     cb({ uid, ...(snap.val() as object) } as UserProfile);
   });
+}
+
+/** Reads the RTDB admin allowlist: `/admins/{uid} === true`. */
+export function subscribeAdminFlag(uid: string, cb: (isAdmin: boolean) => void) {
+  return onValue(
+    ref(db, `admins/${uid}`),
+    (snap) => cb(snap.val() === true),
+    () => cb(false),
+  );
 }
 
 export function subscribeAllUsers(cb: (users: UserProfile[]) => void) {
@@ -38,7 +69,7 @@ export function subscribeAllUsers(cb: (users: UserProfile[]) => void) {
 }
 
 export async function setUserStatus(uid: string, status: "free" | "vip") {
-  await update(ref(db, `users/${uid}`), { status });
+  await update(ref(db, `users/${uid}`), { status, isvip: status === "vip" });
 }
 
 export async function setUserBanned(uid: string, banned: boolean, reason = "") {
@@ -51,12 +82,12 @@ export async function setUserPaymentStatus(uid: string, payment_status: UserProf
 
 export async function setUserRole(
   uid: string,
-  role: "isAdmin" | "isModerator" | "isBeta",
+  role: "isModerator" | "isBeta",
   value: boolean,
 ) {
   await update(ref(db, `users/${uid}`), { [role]: value });
 }
 
 export function isVip(p?: UserProfile | null) {
-  return !!p && p.status === "vip";
+  return !!p && (p.status === "vip" || p.isvip === true);
 }
