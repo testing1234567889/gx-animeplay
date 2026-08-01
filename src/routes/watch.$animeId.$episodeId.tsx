@@ -378,6 +378,38 @@ function WatchPage() {
         </div>
       )}
 
+      {/* VIP episode banner */}
+      {current?.vip_only && (
+        <div
+          className="mt-4 flex items-center gap-3 rounded-xl px-4 py-3 ring-1 ring-amber-400/40"
+          style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.18), rgba(253,230,138,0.08))" }}
+        >
+          <span
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-black shadow-lg shadow-amber-500/30"
+            style={{ background: "linear-gradient(135deg,#FDE68A,#F59E0B)" }}
+          >
+            <Crown className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-amber-300">Episode Eksklusif VIP</p>
+            <p className="text-xs text-amber-100/70">
+              {isVip
+                ? "Kamu member VIP — akses awal aktif, nikmati episode ini lebih dulu."
+                : "Member VIP bisa menonton lebih awal. Upgrade untuk akses instan tanpa menunggu."}
+            </p>
+          </div>
+          {!isVip && (
+            <Link
+              to="/upgrade"
+              className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold text-black"
+              style={{ background: "linear-gradient(135deg,#FDE68A,#F59E0B)" }}
+            >
+              Upgrade
+            </Link>
+          )}
+        </div>
+      )}
+
       {/* Expandable synopsis */}
       {synopsis && (
         <div className="mt-4">
@@ -437,14 +469,14 @@ function WatchPage() {
         <h2 className="mb-3 text-lg font-semibold">Episodes</h2>
         {episodes === null ? (
           <div className="flex gap-2 overflow-hidden">
-            {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-12 w-12 shrink-0" />)}
+            {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-10 w-10 shrink-0" />)}
           </div>
         ) : episodes.length === 0 ? (
           <div className="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
             No episodes yet.
           </div>
         ) : (
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-thin scroll-smooth snap-x">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 scroll-smooth snap-x">
             {episodes.map((ep) => {
               const active = ep.id === episodeId;
               return (
@@ -452,7 +484,7 @@ function WatchPage() {
                   key={ep.id}
                   onClick={() => navigate({ to: "/watch/$animeId/$episodeId", params: { animeId, episodeId: ep.id } })}
                   className={
-                    "relative flex h-12 min-w-[3rem] shrink-0 snap-start items-center justify-center rounded-xl px-3 text-sm font-bold ring-1 transition " +
+                    "relative flex h-10 min-w-[2.5rem] shrink-0 snap-start items-center justify-center rounded-lg px-2.5 text-[13px] font-bold ring-1 transition " +
                     (active
                       ? "bg-primary text-primary-foreground ring-primary shadow-lg shadow-primary/40 scale-105"
                       : "bg-card text-foreground/80 ring-white/10 hover:ring-primary/40")

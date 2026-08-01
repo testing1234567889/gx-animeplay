@@ -51,7 +51,7 @@ function SearchPage() {
           Ketik di kolom pencarian lalu tekan Enter.
         </div>
       ) : showSkeleton || animes === null ? (
-        <div className="mt-6 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
+        <div className="mt-6 grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
           {Array.from({ length: 12 }).map((_, i) => (
             <Skeleton key={i} className="aspect-[2/3] w-full" />
           ))}
@@ -61,7 +61,7 @@ function SearchPage() {
           Pencarian '{q}' tidak ditemukan.
         </div>
       ) : (
-        <div className="mt-6 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
+        <div className="mt-6 grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
           {results.map((a) => (
             <AnimeCard key={a.id} a={a} />
           ))}

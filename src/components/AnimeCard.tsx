@@ -1,10 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Flame, CheckCircle2, Bookmark } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Flame, CheckCircle2 } from "lucide-react";
 import type { Anime } from "../lib/types";
-import { useAuth } from "../lib/auth-context";
-import { addBookmark, removeBookmark, isBookmarkedOnce } from "../lib/bookmarks";
-import { toast } from "sonner";
 
 type Props = {
   a: Anime;
@@ -12,43 +8,14 @@ type Props = {
   latestEpOverride?: string;
 };
 
-export function AnimeCard({ a, showBookmark = true, latestEpOverride }: Props) {
-  const { user } = useAuth();
-  const [bm, setBm] = useState(false);
-
-  useEffect(() => {
-    if (!user) return;
-    isBookmarkedOnce(user.uid, a.id).then(setBm);
-  }, [user, a.id]);
-
-  const toggleBookmark = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!user) {
-      toast.error("Login to bookmark");
-      return;
-    }
-    try {
-      if (bm) {
-        await removeBookmark(user.uid, a.id);
-        setBm(false);
-        toast.success("Removed from bookmarks");
-      } else {
-        await addBookmark(user.uid, a.id);
-        setBm(true);
-        toast.success("Bookmarked");
-      }
-    } catch (err: any) {
-      toast.error(err?.message ?? "Failed");
-    }
-  };
-
+export function AnimeCard({ a, latestEpOverride }: Props) {
   const completed = (a.status ?? "").toLowerCase() === "completed";
 
   return (
     <Link
       to="/anime/$animeId"
       params={{ animeId: a.id }}
+      preload="intent"
       className="group block transition-transform duration-200 active:scale-95"
     >
       <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-card ring-1 ring-white/5 transition group-hover:ring-primary/40">
@@ -96,24 +63,6 @@ export function AnimeCard({ a, showBookmark = true, latestEpOverride }: Props) {
         <span className="absolute bottom-1.5 right-1.5 rounded-md bg-yellow-400 px-1.5 py-0.5 text-[10px] font-bold text-black shadow">
           Sub
         </span>
-
-        {/* Bookmark button */}
-        {showBookmark && (
-          <button
-            type="button"
-            onClick={toggleBookmark}
-            aria-label="Bookmark"
-            className={
-              "absolute top-1/2 right-1.5 -translate-y-1/2 rounded-full p-1.5 backdrop-blur-md ring-1 transition opacity-0 group-hover:opacity-100 active:opacity-100 " +
-              (bm
-                ? "bg-primary text-primary-foreground ring-primary"
-                : "bg-black/50 text-white ring-white/20 hover:bg-primary hover:ring-primary")
-            }
-          >
-            <Bookmark className={"h-3.5 w-3.5 " + (bm ? "fill-current" : "")} />
-          </button>
-        )}
-
       </div>
       <div className="mt-1.5 line-clamp-2 text-xs sm:text-sm font-medium text-foreground">
         {a.title}
