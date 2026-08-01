@@ -6,6 +6,8 @@ import { getAnime, subscribeEpisodes } from "../lib/anime-api";
 import { reportVideo } from "../lib/progress";
 import { getVipEmbed } from "../lib/vip-embed.functions";
 import { auth } from "../lib/firebase";
+import { resolveEmbed } from "../lib/embed";
+import { ExpandableText } from "../components/ExpandableText";
 import type { Anime, Episode } from "../lib/types";
 import { Skeleton } from "../components/Skeleton";
 import { Comments } from "../components/Comments";
@@ -106,7 +108,6 @@ function WatchPage() {
   const [episodes, setEpisodes] = useState<Episode[] | null>(null);
   const [server, setServer] = useState<ServerKey>("s1");
   const [now, setNow] = useState(Date.now());
-  const [synopsisOpen, setSynopsisOpen] = useState(false);
   const [serverDialog, setServerDialog] = useState(false);
   const [reportDialog, setReportDialog] = useState(false);
 
@@ -195,7 +196,7 @@ function WatchPage() {
 
   // VIP gating (kept as UX affordance — real gate is the server function above).
   const isVip = profile?.status === "vip";
-  const release = current?.release_time ?? current?.created_at ?? 0;
+  const release = current?.created_at ?? current?.release_time ?? 0;
   const unlockAt = release + VIP_DELAY_MS;
   const locked = !!current?.vip_only && !isVip && now < unlockAt;
   const remainingMs = Math.max(0, unlockAt - now);
@@ -232,52 +233,33 @@ function WatchPage() {
   const renderPlayer = () => {
     if (!current) return null;
     const onLoad = () => setPlayerLoading(false);
-    if (server === "s1" && s1Data)
+    const raw = availability[server];
+    const resolved = resolveEmbed(raw);
+
+    if (resolved.kind === "video") {
       return (
-        <iframe
-          src={`https://geo.dailymotion.com/player/xid0t.html?video=${s1Data}&autoplay=0`}
-          allow="autoplay; fullscreen; picture-in-picture; web-share"
-          allowFullScreen
-          onLoad={onLoad}
-          className="w-full h-full absolute inset-0"
-          frameBorder="0"
-          title="Server 1"
+        <video
+          key={resolved.src}
+          src={resolved.src}
+          controls
+          playsInline
+          onLoadedData={onLoad}
+          onCanPlay={onLoad}
+          className="w-full h-full absolute inset-0 bg-black"
         />
       );
-    if (server === "s2" && s2Data)
+    }
+    if (resolved.kind === "iframe") {
       return (
         <iframe
-          src={`https://ok.ru/videoembed/${s2Data}`}
+          key={resolved.src}
+          src={resolved.src}
+          allow="autoplay; fullscreen; picture-in-picture; encrypted-media; web-share"
           allowFullScreen
           onLoad={onLoad}
           className="w-full h-full absolute inset-0"
           frameBorder="0"
-          title="Server 2"
-        />
-      );
-    if (server === "s3" && s3Data) {
-      const isMp4 = s3Data.toLowerCase().split("?")[0].endsWith(".mp4");
-      if (isMp4) {
-        return (
-          <video
-            src={s3Data}
-            controls
-            playsInline
-            onLoadedData={onLoad}
-            onCanPlay={onLoad}
-            className="w-full h-full absolute inset-0 bg-black"
-          />
-        );
-      }
-      return (
-        <iframe
-          src={s3Data}
-          allow="autoplay; fullscreen; picture-in-picture"
-          allowFullScreen
-          onLoad={onLoad}
-          className="w-full h-full absolute inset-0"
-          frameBorder="0"
-          title="Server 3"
+          title={activeServerLabel}
         />
       );
     }
@@ -317,7 +299,6 @@ function WatchPage() {
         <p className="mt-1 text-sm text-muted-foreground">Try another server.</p>
       </div>
     );
-
   };
 
   const servers: { k: ServerKey; label: string; available: boolean }[] = [
@@ -328,9 +309,7 @@ function WatchPage() {
   const activeServerLabel = servers.find((s) => s.k === server)?.label ?? "Server";
   const downloadUrl = embed?.download_url || "";
 
-  // Synopsis clamp logic
   const synopsis = anime?.description ?? "";
-  const isLongSynopsis = synopsis.length > 140;
 
   return (
     <main className="mx-auto max-w-6xl px-4 pb-24 pt-6">
@@ -444,17 +423,14 @@ function WatchPage() {
       {/* Expandable synopsis */}
       {synopsis && (
         <div className="mt-4">
-          <p className={"text-sm text-slate-300 leading-relaxed whitespace-pre-wrap " + (synopsisOpen || !isLongSynopsis ? "" : "line-clamp-2")}>
-            {synopsis}
-          </p>
-          {isLongSynopsis && (
-            <button
-              onClick={() => setSynopsisOpen((v) => !v)}
-              className="mt-1 text-sm font-semibold text-blue-500 hover:text-blue-400"
-            >
-              {synopsisOpen ? "Tutup ‹" : "Baca semua ›"}
-            </button>
-          )}
+          <ExpandableText
+            text={synopsis}
+            lines={2}
+            className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap"
+            moreLabel="Baca semua"
+            lessLabel="Tutup"
+            buttonClassName="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-blue-500 hover:text-blue-400"
+          />
         </div>
       )}
 

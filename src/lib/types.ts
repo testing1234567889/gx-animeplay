@@ -32,10 +32,10 @@ export type Episode = {
   server2_name?: string;
   server3_data?: string;
   server3_name?: string;
+  /** VIP-only for 30 minutes after publish (created_at), then open to everyone. */
   vip_only?: boolean;
-  release_time?: number; // ms epoch when it became released
-  skipStart?: number; // seconds
-  skipEnd?: number; // seconds
+  /** @deprecated legacy rows only — unlock is based on created_at. */
+  release_time?: number;
   download_url?: string;
   ratings?: Record<string, { uid: string; score: number }>;
   created_at?: number;

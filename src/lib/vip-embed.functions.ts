@@ -71,7 +71,7 @@ export const getVipEmbed = createServerFn({ method: "POST" })
     }
 
     // 3. Gate: VIP status or early-access window elapsed
-    const release = ep.release_time ?? ep.created_at ?? 0;
+    const release = ep.created_at ?? ep.release_time ?? 0;
     const windowElapsed = Date.now() >= release + VIP_DELAY_MS;
 
     if (ep.vip_only && !windowElapsed) {

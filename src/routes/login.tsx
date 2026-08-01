@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "../lib/auth-context";
 import { toast } from "sonner";
-import { ShieldCheck, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -73,7 +73,8 @@ function LoginPage() {
           </div>
           <h1 className="text-center text-xl font-bold tracking-tight">Masuk / Daftar</h1>
           <p className="mt-2 text-center text-sm text-muted-foreground">
-            Cukup satu klik dengan Google. Akun baru otomatis dibuat.
+            Masuk dengan akun Google Anda untuk menyimpan bookmark, riwayat tontonan, dan
+            mengakses fitur VIP.
           </p>
 
           <button
@@ -85,21 +86,10 @@ function LoginPage() {
             {busy ? "Menghubungkan…" : "Lanjutkan dengan Google"}
           </button>
 
-          <p className="mt-4 text-center text-[11px] leading-relaxed text-muted-foreground">
-            Login email &amp; password sudah dihapus untuk pengguna. Hanya panel admin yang
-            memakainya.
-          </p>
-
-          <Link
-            to="/admin"
-            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white/5 py-2.5 text-xs font-semibold text-muted-foreground ring-1 ring-white/10 hover:text-foreground"
-          >
-            <ShieldCheck className="h-3.5 w-3.5" /> Masuk sebagai Admin
-          </Link>
-
-          <Link to="/" className="mt-3 block text-center text-xs text-muted-foreground hover:text-foreground">
+          <Link to="/" className="mt-4 block text-center text-xs text-muted-foreground hover:text-foreground">
             Lanjut jelajah sebagai guest
           </Link>
+
         </div>
       </div>
     </main>
