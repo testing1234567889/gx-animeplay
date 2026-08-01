@@ -230,27 +230,14 @@ function AnimeDetail() {
             {anime.description && (
               <>
                 <h3 className="text-white font-bold text-xl mt-8">Sinopsis {anime.title}</h3>
-                <p
-                  className={
-                    "text-slate-300 text-sm md:text-base mt-2 leading-relaxed whitespace-pre-wrap " +
-                    (descOpen || anime.description.length <= 220 ? "" : "line-clamp-4")
-                  }
-                >
-                  {anime.description}
-                </p>
-                {anime.description.length > 220 && (
-                  <button
-                    type="button"
-                    onClick={() => setDescOpen((v) => !v)}
-                    className="mt-1.5 inline-flex items-center gap-1 text-sm font-semibold text-blue-500 hover:text-blue-400"
-                  >
-                    {descOpen ? "Lebih sedikit" : "Lebih banyak"}
-                    <span aria-hidden>{descOpen ? "‹" : "›"}</span>
-                  </button>
-
-                )}
+                <ExpandableText
+                  text={anime.description}
+                  lines={4}
+                  className="text-slate-300 text-sm md:text-base mt-2 leading-relaxed whitespace-pre-wrap"
+                />
               </>
             )}
+
 
             {/* Rating block — only logged-in users who haven't rated */}
             <RateBlock anime={anime} onRated={() => getAnime(animeId).then(setAnime)} />
