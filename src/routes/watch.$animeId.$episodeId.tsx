@@ -11,6 +11,8 @@ import { Skeleton } from "../components/Skeleton";
 import { Comments } from "../components/Comments";
 import { useAuth } from "../lib/auth-context";
 import { recordHistory } from "../lib/history";
+import { fetchAnimeMeta, fetchEpisodeMeta, clampDescription, safeImage, SITE_URL } from "../lib/seo-data";
+
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "../components/ui/dialog";
@@ -27,8 +29,69 @@ type EmbedPayload = {
 
 export const Route = createFileRoute("/watch/$animeId/$episodeId")({
   component: WatchPage,
-  head: () => ({ meta: [{ title: "Watch — AnimePlay" }] }),
+  loader: async ({ params }) => {
+    const [animeMeta, episodeMeta] = await Promise.all([
+      fetchAnimeMeta(params.animeId),
+      fetchEpisodeMeta(params.episodeId),
+    ]);
+    return { animeMeta, episodeMeta };
+  },
+  head: ({ params, loaderData }) => {
+    const a = loaderData?.animeMeta;
+    const ep = loaderData?.episodeMeta;
+    const epLabel = ep?.number != null ? `Episode ${ep.number}` : "Episode";
+    const title = a?.title
+      ? `${a.title} ${epLabel}${ep?.title ? ` - ${ep.title}` : ""} Sub Indo | AnimePlay`
+      : "Watch — AnimePlay";
+    const description = a?.title
+      ? clampDescription(
+          `Nonton ${a.title} ${epLabel} subtitle Indonesia kualitas HD gratis di AnimePlay.${
+            a.description ? ` ${a.description}` : ""
+          }`,
+        )
+      : "Nonton episode anime subtitle Indonesia kualitas HD gratis di AnimePlay.";
+    const image = safeImage(a?.banner_url) ?? safeImage(a?.poster_url);
+    const url = `${SITE_URL}/watch/${params.animeId}/${params.episodeId}`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "video.episode" },
+        { property: "og:url", content: url },
+        { name: "twitter:card", content: image ? "summary_large_image" : "summary" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        ...(image
+          ? [
+              { property: "og:image", content: image },
+              { name: "twitter:image", content: image },
+            ]
+          : []),
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: a?.title
+        ? [
+            {
+              type: "application/ld+json",
+              children: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "TVEpisode",
+                name: `${a.title} ${epLabel}`,
+                ...(ep?.number != null ? { episodeNumber: ep.number } : {}),
+                partOfSeries: { "@type": "TVSeries", name: a.title, url: `${SITE_URL}/anime/${params.animeId}` },
+                description,
+                ...(image ? { image } : {}),
+                url,
+              }),
+            },
+          ]
+        : undefined,
+    };
+  },
 });
+
 
 type ServerKey = "s1" | "s2" | "s3";
 const VIP_DELAY_MS = 30 * 60 * 1000;
