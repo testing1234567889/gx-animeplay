@@ -97,7 +97,7 @@ function SchedulePage() {
       </div>
 
       {animes === null ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
           {Array.from({ length: 10 }).map((_, i) => (
             <Skeleton key={i} className="aspect-[2/3] w-full" />
           ))}
@@ -107,7 +107,7 @@ function SchedulePage() {
           No episodes scheduled for this day.
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
           {filtered.map((a) => (
             <AnimeCard key={a.id} a={a} latestEpOverride={smartEp(a)} />
           ))}

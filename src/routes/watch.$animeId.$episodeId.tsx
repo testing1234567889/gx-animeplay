@@ -437,14 +437,14 @@ function WatchPage() {
         <h2 className="mb-3 text-lg font-semibold">Episodes</h2>
         {episodes === null ? (
           <div className="flex gap-2 overflow-hidden">
-            {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-12 w-12 shrink-0" />)}
+            {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-10 w-10 shrink-0" />)}
           </div>
         ) : episodes.length === 0 ? (
           <div className="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
             No episodes yet.
           </div>
         ) : (
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-thin scroll-smooth snap-x">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 scroll-smooth snap-x">
             {episodes.map((ep) => {
               const active = ep.id === episodeId;
               return (
@@ -452,7 +452,7 @@ function WatchPage() {
                   key={ep.id}
                   onClick={() => navigate({ to: "/watch/$animeId/$episodeId", params: { animeId, episodeId: ep.id } })}
                   className={
-                    "relative flex h-12 min-w-[3rem] shrink-0 snap-start items-center justify-center rounded-xl px-3 text-sm font-bold ring-1 transition " +
+                    "relative flex h-10 min-w-[2.5rem] shrink-0 snap-start items-center justify-center rounded-lg px-2.5 text-[13px] font-bold ring-1 transition " +
                     (active
                       ? "bg-primary text-primary-foreground ring-primary shadow-lg shadow-primary/40 scale-105"
                       : "bg-card text-foreground/80 ring-white/10 hover:ring-primary/40")

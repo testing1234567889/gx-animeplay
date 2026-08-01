@@ -68,7 +68,7 @@ function BookmarkPage() {
     <main className="mx-auto max-w-7xl px-4 pb-32 pt-6 animate-fade-in">
       <h1 className="mb-4 text-2xl font-bold">Your Bookmarks</h1>
       {animes === null ? (
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
+        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="aspect-[2/3] w-full" />
           ))}
@@ -78,7 +78,7 @@ function BookmarkPage() {
           No bookmarks yet. Tap the bookmark icon on any anime card to save it.
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
+        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
           {animes.map((a) => (
             <AnimeCard key={a.id} a={a} />
           ))}
