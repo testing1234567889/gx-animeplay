@@ -91,3 +91,16 @@ export async function setUserRole(
 export function isVip(p?: UserProfile | null) {
   return !!p && (p.status === "vip" || p.isvip === true);
 }
+
+/** Admin allowlist writes — only the root admin UID may do this (enforced by rules). */
+export async function setAdminFlag(uid: string, value: boolean) {
+  await set(ref(db, `admins/${uid}`), value ? true : null);
+}
+
+export function subscribeAdminMap(cb: (m: Record<string, boolean>) => void) {
+  return onValue(
+    ref(db, "admins"),
+    (snap) => cb((snap.val() as Record<string, boolean> | null) ?? {}),
+    () => cb({}),
+  );
+}
