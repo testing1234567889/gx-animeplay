@@ -9,56 +9,31 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UpgradeRouteImport } from './routes/upgrade'
-import { Route as SearchRouteImport } from './routes/search'
-import { Route as ScheduleRouteImport } from './routes/schedule'
-import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as BookmarkRouteImport } from './routes/bookmark'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProfileIndexRouteImport } from './routes/profile.index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as BookmarkRouteImport } from './routes/bookmark'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ScheduleRouteImport } from './routes/schedule'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as UpgradeRouteImport } from './routes/upgrade'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as UserUserIdRouteImport } from './routes/user.$userId'
-import { Route as ProfileSettingsRouteImport } from './routes/profile.settings'
-import { Route as ProfileHistoryRouteImport } from './routes/profile.history'
-import { Route as ProfileEditRouteImport } from './routes/profile.edit'
-import { Route as AnimeAnimeIdRouteImport } from './routes/anime.$animeId'
-import { Route as AdminUsersRouteImport } from './routes/admin.users'
-import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
-import { Route as AdminReportsRouteImport } from './routes/admin.reports'
-import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminAnimesRouteImport } from './routes/admin.animes'
+import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
+import { Route as AdminReportsRouteImport } from './routes/admin.reports'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AnimeAnimeIdRouteImport } from './routes/anime.$animeId'
+import { Route as ProfileIndexRouteImport } from './routes/profile.index'
+import { Route as ProfileEditRouteImport } from './routes/profile.edit'
+import { Route as ProfileHistoryRouteImport } from './routes/profile.history'
+import { Route as ProfileSettingsRouteImport } from './routes/profile.settings'
+import { Route as UserUserIdRouteImport } from './routes/user.$userId'
 import { Route as WatchAnimeIdEpisodeIdRouteImport } from './routes/watch.$animeId.$episodeId'
 
-const UpgradeRoute = UpgradeRouteImport.update({
-  id: '/upgrade',
-  path: '/upgrade',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SearchRoute = SearchRouteImport.update({
-  id: '/search',
-  path: '/search',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ScheduleRoute = ScheduleRouteImport.update({
-  id: '/schedule',
-  path: '/schedule',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BookmarkRoute = BookmarkRouteImport.update({
-  id: '/bookmark',
-  path: '/bookmark',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -66,59 +41,44 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const BookmarkRoute = BookmarkRouteImport.update({
+  id: '/bookmark',
+  path: '/bookmark',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProfileIndexRoute = ProfileIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ProfileRoute,
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScheduleRoute = ScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UpgradeRoute = UpgradeRouteImport.update({
+  id: '/upgrade',
+  path: '/upgrade',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
-const UserUserIdRoute = UserUserIdRouteImport.update({
-  id: '/user/$userId',
-  path: '/user/$userId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfileSettingsRoute = ProfileSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => ProfileRoute,
-} as any)
-const ProfileHistoryRoute = ProfileHistoryRouteImport.update({
-  id: '/history',
-  path: '/history',
-  getParentRoute: () => ProfileRoute,
-} as any)
-const ProfileEditRoute = ProfileEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => ProfileRoute,
-} as any)
-const AnimeAnimeIdRoute = AnimeAnimeIdRouteImport.update({
-  id: '/anime/$animeId',
-  path: '/anime/$animeId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminUsersRoute = AdminUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminSettingsRoute = AdminSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminReportsRoute = AdminReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
+const AdminAnimesRoute = AdminAnimesRouteImport.update({
+  id: '/animes',
+  path: '/animes',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
@@ -126,10 +86,50 @@ const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
   path: '/payments',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminAnimesRoute = AdminAnimesRouteImport.update({
-  id: '/animes',
-  path: '/animes',
+const AdminReportsRoute = AdminReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
   getParentRoute: () => AdminRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AnimeAnimeIdRoute = AnimeAnimeIdRouteImport.update({
+  id: '/anime/$animeId',
+  path: '/anime/$animeId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileIndexRoute = ProfileIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProfileRoute,
+} as any)
+const ProfileEditRoute = ProfileEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => ProfileRoute,
+} as any)
+const ProfileHistoryRoute = ProfileHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => ProfileRoute,
+} as any)
+const ProfileSettingsRoute = ProfileSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => ProfileRoute,
+} as any)
+const UserUserIdRoute = UserUserIdRouteImport.update({
+  id: '/user/$userId',
+  path: '/user/$userId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const WatchAnimeIdEpisodeIdRoute = WatchAnimeIdEpisodeIdRouteImport.update({
   id: '/watch/$animeId/$episodeId',
@@ -291,46 +291,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/upgrade': {
-      id: '/upgrade'
-      path: '/upgrade'
-      fullPath: '/upgrade'
-      preLoaderRoute: typeof UpgradeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/search': {
-      id: '/search'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof SearchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/schedule': {
-      id: '/schedule'
-      path: '/schedule'
-      fullPath: '/schedule'
-      preLoaderRoute: typeof ScheduleRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/bookmark': {
-      id: '/bookmark'
-      path: '/bookmark'
-      fullPath: '/bookmark'
-      preLoaderRoute: typeof BookmarkRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -340,19 +305,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/bookmark': {
+      id: '/bookmark'
+      path: '/bookmark'
+      fullPath: '/bookmark'
+      preLoaderRoute: typeof BookmarkRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/profile/': {
-      id: '/profile/'
-      path: '/'
-      fullPath: '/profile/'
-      preLoaderRoute: typeof ProfileIndexRouteImport
-      parentRoute: typeof ProfileRoute
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/schedule': {
+      id: '/schedule'
+      path: '/schedule'
+      fullPath: '/schedule'
+      preLoaderRoute: typeof ScheduleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/upgrade': {
+      id: '/upgrade'
+      path: '/upgrade'
+      fullPath: '/upgrade'
+      preLoaderRoute: typeof UpgradeRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/admin/': {
       id: '/admin/'
@@ -361,60 +354,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/user/$userId': {
-      id: '/user/$userId'
-      path: '/user/$userId'
-      fullPath: '/user/$userId'
-      preLoaderRoute: typeof UserUserIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile/settings': {
-      id: '/profile/settings'
-      path: '/settings'
-      fullPath: '/profile/settings'
-      preLoaderRoute: typeof ProfileSettingsRouteImport
-      parentRoute: typeof ProfileRoute
-    }
-    '/profile/history': {
-      id: '/profile/history'
-      path: '/history'
-      fullPath: '/profile/history'
-      preLoaderRoute: typeof ProfileHistoryRouteImport
-      parentRoute: typeof ProfileRoute
-    }
-    '/profile/edit': {
-      id: '/profile/edit'
-      path: '/edit'
-      fullPath: '/profile/edit'
-      preLoaderRoute: typeof ProfileEditRouteImport
-      parentRoute: typeof ProfileRoute
-    }
-    '/anime/$animeId': {
-      id: '/anime/$animeId'
-      path: '/anime/$animeId'
-      fullPath: '/anime/$animeId'
-      preLoaderRoute: typeof AnimeAnimeIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/users': {
-      id: '/admin/users'
-      path: '/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AdminUsersRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/settings': {
-      id: '/admin/settings'
-      path: '/settings'
-      fullPath: '/admin/settings'
-      preLoaderRoute: typeof AdminSettingsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/reports': {
-      id: '/admin/reports'
-      path: '/reports'
-      fullPath: '/admin/reports'
-      preLoaderRoute: typeof AdminReportsRouteImport
+    '/admin/animes': {
+      id: '/admin/animes'
+      path: '/animes'
+      fullPath: '/admin/animes'
+      preLoaderRoute: typeof AdminAnimesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/payments': {
@@ -424,12 +368,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPaymentsRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/animes': {
-      id: '/admin/animes'
-      path: '/animes'
-      fullPath: '/admin/animes'
-      preLoaderRoute: typeof AdminAnimesRouteImport
+    '/admin/reports': {
+      id: '/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AdminReportsRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/anime/$animeId': {
+      id: '/anime/$animeId'
+      path: '/anime/$animeId'
+      fullPath: '/anime/$animeId'
+      preLoaderRoute: typeof AnimeAnimeIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/': {
+      id: '/profile/'
+      path: '/'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof ProfileIndexRouteImport
+      parentRoute: typeof ProfileRoute
+    }
+    '/profile/edit': {
+      id: '/profile/edit'
+      path: '/edit'
+      fullPath: '/profile/edit'
+      preLoaderRoute: typeof ProfileEditRouteImport
+      parentRoute: typeof ProfileRoute
+    }
+    '/profile/history': {
+      id: '/profile/history'
+      path: '/history'
+      fullPath: '/profile/history'
+      preLoaderRoute: typeof ProfileHistoryRouteImport
+      parentRoute: typeof ProfileRoute
+    }
+    '/profile/settings': {
+      id: '/profile/settings'
+      path: '/settings'
+      fullPath: '/profile/settings'
+      preLoaderRoute: typeof ProfileSettingsRouteImport
+      parentRoute: typeof ProfileRoute
+    }
+    '/user/$userId': {
+      id: '/user/$userId'
+      path: '/user/$userId'
+      fullPath: '/user/$userId'
+      preLoaderRoute: typeof UserUserIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/watch/$animeId/$episodeId': {
       id: '/watch/$animeId/$episodeId'
@@ -494,13 +494,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
