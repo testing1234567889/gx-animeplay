@@ -12,10 +12,60 @@ import { addBookmark, removeBookmark, isBookmarkedOnce } from "../lib/bookmarks"
 
 export const Route = createFileRoute("/anime/$animeId")({
   component: AnimeDetail,
-  head: () => ({
-    meta: [{ title: "Anime — AnimePlay" }],
-  }),
+  loader: async ({ params }) => {
+    const a = await fetchAnimeMeta(params.animeId);
+    return { animeMeta: a };
+  },
+  head: ({ params, loaderData }) => {
+    const a = loaderData?.animeMeta;
+    const title = a?.title ? `${a.title} — Nonton Sub Indo | AnimePlay` : "Anime — AnimePlay";
+    const genres = a?.genres?.length ? ` Genre: ${a.genres.join(", ")}.` : "";
+    const description =
+      clampDescription(a?.description) ||
+      (a?.title
+        ? clampDescription(`Nonton ${a.title} subtitle Indonesia gratis di AnimePlay.${genres}`)
+        : "Nonton anime subtitle Indonesia gratis dan lengkap di AnimePlay.");
+    const image = safeImage(a?.banner_url) ?? safeImage(a?.poster_url);
+    const url = `${SITE_URL}/anime/${params.animeId}`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "video.tv_show" },
+        { property: "og:url", content: url },
+        { name: "twitter:card", content: image ? "summary_large_image" : "summary" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        ...(image
+          ? [
+              { property: "og:image", content: image },
+              { name: "twitter:image", content: image },
+            ]
+          : []),
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: a?.title
+        ? [
+            {
+              type: "application/ld+json",
+              children: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "TVSeries",
+                name: a.title,
+                description,
+                ...(image ? { image } : {}),
+                ...(a.genres?.length ? { genre: a.genres } : {}),
+                url,
+              }),
+            },
+          ]
+        : undefined,
+    };
+  },
 });
+
 
 function AnimeDetail() {
   const { animeId } = Route.useParams();
