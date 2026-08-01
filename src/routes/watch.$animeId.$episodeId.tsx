@@ -507,7 +507,7 @@ function WatchPage() {
             No episodes yet.
           </div>
         ) : (
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 scroll-smooth snap-x">
+          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 scroll-smooth snap-x">
             {episodes.map((ep) => {
               const active = ep.id === episodeId;
               return (
@@ -515,11 +515,12 @@ function WatchPage() {
                   key={ep.id}
                   onClick={() => navigate({ to: "/watch/$animeId/$episodeId", params: { animeId, episodeId: ep.id } })}
                   className={
-                    "relative flex h-10 min-w-[2.5rem] shrink-0 snap-start items-center justify-center rounded-lg px-2.5 text-[13px] font-bold ring-1 transition " +
+                    "relative flex h-10 min-w-[2.75rem] shrink-0 snap-start items-center justify-center rounded-lg px-3 text-[13px] font-bold ring-1 transition-colors " +
                     (active
-                      ? "bg-primary text-primary-foreground ring-primary shadow-lg shadow-primary/40 scale-105"
+                      ? "bg-primary text-primary-foreground ring-primary"
                       : "bg-card text-foreground/80 ring-white/10 hover:ring-primary/40")
                   }
+
                   title={ep.title || `Episode ${ep.number}`}
                 >
                   {ep.number}
