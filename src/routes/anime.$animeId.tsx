@@ -242,10 +242,12 @@ function AnimeDetail() {
                   <button
                     type="button"
                     onClick={() => setDescOpen((v) => !v)}
-                    className="mt-1.5 text-sm font-semibold text-primary hover:text-primary/80"
+                    className="mt-1.5 inline-flex items-center gap-1 text-sm font-semibold text-blue-500 hover:text-blue-400"
                   >
                     {descOpen ? "Lebih sedikit" : "Lebih banyak"}
+                    <span aria-hidden>{descOpen ? "‹" : "›"}</span>
                   </button>
+
                 )}
               </>
             )}

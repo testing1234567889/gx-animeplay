@@ -281,12 +281,43 @@ function WatchPage() {
         />
       );
     }
+    if (current.vip_only) {
+      return (
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center"
+          style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.20), rgba(15,23,42,0.9))" }}
+        >
+          <span
+            className="mb-3 flex h-12 w-12 items-center justify-center rounded-full text-black"
+            style={{ background: "linear-gradient(135deg,#FDE68A,#F59E0B)" }}
+          >
+            <Crown className="h-6 w-6" />
+          </span>
+          <div className="text-base font-bold text-amber-300">Episode Eksklusif VIP</div>
+          <p className="mt-1 max-w-sm text-xs text-amber-100/70">
+            {isVip
+              ? "Video sedang disiapkan. Coba server lain sebentar lagi."
+              : "Upgrade ke VIP untuk menonton episode ini lebih awal."}
+          </p>
+          {!isVip && (
+            <Link
+              to="/upgrade"
+              className="mt-4 inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold text-black"
+              style={{ background: "linear-gradient(135deg,#FDE68A,#F59E0B,#B45309)" }}
+            >
+              <Crown className="h-4 w-4" /> Upgrade to VIP
+            </Link>
+          )}
+        </div>
+      );
+    }
     return (
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
         <div className="text-lg font-semibold">Video Offline</div>
         <p className="mt-1 text-sm text-muted-foreground">Try another server.</p>
       </div>
     );
+
   };
 
   const servers: { k: ServerKey; label: string; available: boolean }[] = [
@@ -334,7 +365,7 @@ function WatchPage() {
         ) : (
           <>
             {renderPlayer()}
-            {playerLoading && (
+            {playerLoading && !!availability[server] && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/50 pointer-events-none">
                 <Loader2 className="h-10 w-10 animate-spin text-primary" />
               </div>
@@ -476,7 +507,7 @@ function WatchPage() {
             No episodes yet.
           </div>
         ) : (
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 scroll-smooth snap-x">
+          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 scroll-smooth snap-x">
             {episodes.map((ep) => {
               const active = ep.id === episodeId;
               return (
@@ -484,11 +515,12 @@ function WatchPage() {
                   key={ep.id}
                   onClick={() => navigate({ to: "/watch/$animeId/$episodeId", params: { animeId, episodeId: ep.id } })}
                   className={
-                    "relative flex h-10 min-w-[2.5rem] shrink-0 snap-start items-center justify-center rounded-lg px-2.5 text-[13px] font-bold ring-1 transition " +
+                    "relative flex h-10 min-w-[2.75rem] shrink-0 snap-start items-center justify-center rounded-lg px-3 text-[13px] font-bold ring-1 transition-colors " +
                     (active
-                      ? "bg-primary text-primary-foreground ring-primary shadow-lg shadow-primary/40 scale-105"
+                      ? "bg-primary text-primary-foreground ring-primary"
                       : "bg-card text-foreground/80 ring-white/10 hover:ring-primary/40")
                   }
+
                   title={ep.title || `Episode ${ep.number}`}
                 >
                   {ep.number}
