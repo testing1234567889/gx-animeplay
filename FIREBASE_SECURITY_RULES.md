@@ -1,35 +1,29 @@
-# Firebase Realtime Database — FULL Security Rules
+# Firebase RTDB Security Rules — lovable-animestream
 
-Project: `lovable-animestream`
-RTDB: `https://lovable-animestream-default-rtdb.firebaseio.com`
+Copy the JSON below into **Firebase Console → Realtime Database → Rules → Publish**.
 
-## Auth model
+## Yang salah di rules versi kamu
 
-- **Users**: Google sign-in ONLY. Email/password is disabled for regular users.
-- **Admins**: may sign in with email/password *or* Google, but admin power comes
-  from data, not from the client. Admin status = `/admins/{uid} === true`.
-- **Root admin (bootstrap)**: `AVD1M9EMLHhFmmo0j9g55slMW5m2`. This UID is hardcoded
-  ONLY inside these rules (server-side), never in the app bundle.
-- Every new account gets a profile node created on first sign-in, including the
-  `isvip` flag (`false` by default).
+1. **JSON invalid** — beberapa `.write` (payments, comments, reported_comments) ditulis
+   multi-baris. JSON tidak boleh ada newline di dalam string; Firebase akan menolak.
+   Semua ekspresi harus satu baris.
+2. **Privilege escalation (kritis)** — di RTDB, izin `.write` dari node induk **tidak
+   bisa dibatalkan** oleh anaknya. Karena `users/$uid` sudah memberi `.write` ke pemilik
+   akun, maka `"isAdmin": { ".write": false }`, `"isvip"`, `"banned"`, `"status"`,
+   `"vip_until"`, `"isModerator"` dst. **tetap bisa ditulis user sendiri** → user bisa
+   menjadikan dirinya VIP/moderator dan meng-unban diri sendiri.
+   Solusi: pakai `.validate` (validate berlaku kumulatif) untuk mengunci field itu.
+3. **`comments/$cid/pinned` sama masalahnya** — `.write` admin di child tidak menutup
+   `.write` di `$cid`. Dikunci lewat `.validate`.
+4. **`created_at` wajib number** akan menolak update partial? Tidak — validate hanya
+   jalan kalau field ikut ditulis. Tapi ditambahkan `!newData.exists() ||` supaya aman
+   saat field dihapus.
+5. **`users_public/$uid`** belum membatasi field lain, dan `bio` tak boleh kosong hilang.
+6. Catatan: `episodes` sengaja `auth != null` supaya embed URL tidak bisa diambil tamu
+   (paywall VIP dijaga server function). Efek sampingnya: preview Open Graph judul
+   episode fallback ke data anime — itu wajar.
 
-## Bootstrap (do this once, in the Firebase Console → Realtime Database → Data)
-
-```json
-{
-  "admins": {
-    "AVD1M9EMLHhFmmo0j9g55slMW5m2": true
-  }
-}
-```
-
-The rules below also let that exact UID write `/admins/*` itself, so it can
-promote or demote other admins from the Admin → Users tab.
-
-Also enable only **Google** as a sign-in provider (plus Email/Password if you
-want the staff email login) in Authentication → Sign-in method.
-
-## Rules — paste all of this into Realtime Database → Rules
+## Rules final
 
 ```json
 {
@@ -40,35 +34,33 @@ want the staff email login) in Authentication → Sign-in method.
     "admins": {
       ".read": "auth != null",
       ".write": "auth != null && (auth.uid === 'AVD1M9EMLHhFmmo0j9g55slMW5m2' || root.child('admins').child(auth.uid).val() === true)",
-      "$uid": {
-        ".read": "auth != null",
-        ".validate": "newData.isBoolean()"
-      }
+      "$uid": { ".validate": "newData.isBoolean()" }
     },
 
     "users": {
       ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      ".indexOn": ["created_at"],
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)",
         ".write": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)",
 
-        "email":        { ".validate": "newData.isString() || !newData.exists()" },
-        "displayName":  { ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 40)" },
-        "photoURL":     { ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 500)" },
-        "created_at":   { ".validate": "newData.isNumber()" },
+        "email": { ".validate": "!newData.exists() || newData.isString()" },
+        "displayName": { ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 40)" },
+        "photoURL": { ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 500)" },
+        "created_at": { ".validate": "!newData.exists() || newData.isNumber()" },
 
-        "status":         { ".write": "root.child('admins').child(auth.uid).val() === true", ".validate": "newData.val() === 'free' || newData.val() === 'vip'" },
-        "isvip":          { ".write": "root.child('admins').child(auth.uid).val() === true", ".validate": "newData.isBoolean()" },
-        "vip_until":      { ".write": "root.child('admins').child(auth.uid).val() === true" },
-        "banned":         { ".write": "root.child('admins').child(auth.uid).val() === true", ".validate": "newData.isBoolean()" },
-        "ban_reason":     { ".write": "root.child('admins').child(auth.uid).val() === true" },
-        "isAdmin":        { ".write": false },
-        "isModerator":    { ".write": "root.child('admins').child(auth.uid).val() === true" },
-        "isBeta":         { ".write": "root.child('admins').child(auth.uid).val() === true" },
-        "payment_status": { ".write": "root.child('admins').child(auth.uid).val() === true" },
+        "status": { ".validate": "root.child('admins').child(auth.uid).val() === true || (!data.exists() && newData.val() === 'free') || newData.val() === data.val()" },
+        "isvip": { ".validate": "newData.isBoolean() && (root.child('admins').child(auth.uid).val() === true || (!data.exists() && newData.val() === false) || newData.val() === data.val())" },
+        "vip_until": { ".validate": "root.child('admins').child(auth.uid).val() === true || newData.val() === data.val()" },
+        "banned": { ".validate": "newData.isBoolean() && (root.child('admins').child(auth.uid).val() === true || newData.val() === data.val())" },
+        "ban_reason": { ".validate": "root.child('admins').child(auth.uid).val() === true || newData.val() === data.val()" },
+        "isAdmin": { ".validate": "false" },
+        "isModerator": { ".validate": "root.child('admins').child(auth.uid).val() === true || newData.val() === data.val()" },
+        "isBeta": { ".validate": "root.child('admins').child(auth.uid).val() === true || newData.val() === data.val()" },
+        "payment_status": { ".validate": "root.child('admins').child(auth.uid).val() === true || newData.val() === data.val()" },
 
         "watchProgress": { ".write": "auth != null && auth.uid === $uid" },
-        "bookmarks":     { ".write": "auth != null && auth.uid === $uid" }
+        "bookmarks": { ".write": "auth != null && auth.uid === $uid" }
       }
     },
 
@@ -76,22 +68,22 @@ want the staff email login) in Authentication → Sign-in method.
       "$uid": {
         ".read": true,
         ".write": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)",
-        "bio": { ".validate": "newData.isString() && newData.val().length <= 160" }
+        "bio": { ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 160)" },
+        "displayName": { ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 40)" },
+        "photoURL": { ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 500)" },
+        "$other": { ".validate": false }
       }
     },
 
     "payments": {
       ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
-      ".indexOn": ["uid"],
+      ".indexOn": ["uid", "created_at"],
       "$pid": {
         ".read": "auth != null && (data.child('uid').val() === auth.uid || root.child('admins').child(auth.uid).val() === true)",
-        ".write": "auth != null && (
-                     (!data.exists()
-                       && newData.child('uid').val() === auth.uid
-                       && newData.child('amount').val() === 50000
-                       && newData.child('status').val() === 'pending')
-                     || root.child('admins').child(auth.uid).val() === true
-                   )"
+        ".write": "auth != null && ((!data.exists() && newData.child('uid').val() === auth.uid && newData.child('amount').val() === 50000 && newData.child('status').val() === 'pending') || root.child('admins').child(auth.uid).val() === true)",
+        "status": { ".validate": "root.child('admins').child(auth.uid).val() === true || newData.val() === 'pending'" },
+        "amount": { ".validate": "newData.val() === 50000" },
+        "proof_url": { ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 500 && (newData.val().beginsWith('https://') || newData.val().beginsWith('http://')))" }
       }
     },
 
@@ -102,7 +94,7 @@ want the staff email login) in Authentication → Sign-in method.
         "userRatings": {
           "$uid": {
             ".write": "auth != null && auth.uid === $uid",
-            ".validate": "newData.child('score').isNumber() && newData.child('score').val() >= 1 && newData.child('score').val() <= 5"
+            "score": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 5" }
           }
         }
       }
@@ -123,18 +115,13 @@ want the staff email login) in Authentication → Sign-in method.
       "$episodeId": {
         ".read": true,
         "$cid": {
-          ".write": "auth != null && (
-                       (!data.exists()
-                         && newData.child('uid').val() === auth.uid
-                         && root.child('users').child(auth.uid).child('banned').val() !== true
-                         && !newData.hasChild('pinned'))
-                       || root.child('admins').child(auth.uid).val() === true
-                     )",
+          ".write": "auth != null && ((!data.exists() && newData.child('uid').val() === auth.uid && root.child('users').child(auth.uid).child('banned').val() !== true) || (data.child('uid').val() === auth.uid && !newData.exists()) || root.child('admins').child(auth.uid).val() === true)",
+          "uid": { ".validate": "newData.val() === data.val() || newData.val() === auth.uid" },
           "text": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 500" },
-          "pinned": { ".write": "root.child('admins').child(auth.uid).val() === true" },
+          "pinned": { ".validate": "newData.isBoolean() && (root.child('admins').child(auth.uid).val() === true || newData.val() === data.val())" },
           "reports": {
             "$reporter": {
-              ".write": "auth != null && auth.uid === $reporter",
+              ".write": "auth != null && (auth.uid === $reporter || root.child('admins').child(auth.uid).val() === true)",
               ".validate": "newData.isBoolean()"
             }
           }
@@ -145,23 +132,20 @@ want the staff email login) in Authentication → Sign-in method.
     "reported_comments": {
       ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
       "$rid": {
-        ".write": "auth != null && (
-                     (!data.exists() && newData.child('reporter_uid').val() === auth.uid)
-                     || root.child('admins').child(auth.uid).val() === true
-                   )"
+        ".write": "auth != null && ((!data.exists() && newData.child('reporter_uid').val() === auth.uid) || root.child('admins').child(auth.uid).val() === true)"
       }
     },
 
     "bookmarks": {
       "$uid": {
-        ".read":  "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)",
+        ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)",
         ".write": "auth != null && auth.uid === $uid"
       }
     },
 
     "history": {
       "$uid": {
-        ".read":  "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)",
+        ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)",
         ".write": "auth != null && auth.uid === $uid"
       }
     }
@@ -169,17 +153,5 @@ want the staff email login) in Authentication → Sign-in method.
 }
 ```
 
-## What the client can and cannot do
-
-| Action | Allowed for |
-| --- | --- |
-| Create own profile + `isvip: false` | the signed-in user, on first login |
-| Flip `status` / `isvip` / `banned` / `isModerator` | admins only |
-| Write `/admins/{uid}` | root admin UID (and existing admins) |
-| Delete any comment / pin | admins only |
-| Delete own comment | comment author |
-| Read all users / payments | admins only |
-
-`users/{uid}/isAdmin` is permanently read-only (`".write": false`) so a stale or
-forged value in a profile document can never grant admin — the app resolves
-admin status from `/admins/{uid}`.
+Root admin UID `AVD1M9EMLHhFmmo0j9g55slMW5m2` hanya dipakai di dalam rules ini
+(bootstrap `/admins`), tidak pernah di kode client.
