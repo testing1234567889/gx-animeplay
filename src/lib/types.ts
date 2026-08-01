@@ -47,7 +47,10 @@ export type UserProfile = {
   displayName?: string | null;
   photoURL?: string | null;
   status?: "free" | "vip";
+  /** Mirrors `status === "vip"`; created for every new account on first sign-in. */
+  isvip?: boolean;
   vip_until?: number | null;
+
   banned?: boolean;
   ban_reason?: string;
   payment_status?: "none" | "pending" | "approved" | "rejected";
