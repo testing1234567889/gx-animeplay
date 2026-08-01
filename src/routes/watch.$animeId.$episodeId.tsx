@@ -281,12 +281,43 @@ function WatchPage() {
         />
       );
     }
+    if (current.vip_only) {
+      return (
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center"
+          style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.20), rgba(15,23,42,0.9))" }}
+        >
+          <span
+            className="mb-3 flex h-12 w-12 items-center justify-center rounded-full text-black"
+            style={{ background: "linear-gradient(135deg,#FDE68A,#F59E0B)" }}
+          >
+            <Crown className="h-6 w-6" />
+          </span>
+          <div className="text-base font-bold text-amber-300">Episode Eksklusif VIP</div>
+          <p className="mt-1 max-w-sm text-xs text-amber-100/70">
+            {isVip
+              ? "Video sedang disiapkan. Coba server lain sebentar lagi."
+              : "Upgrade ke VIP untuk menonton episode ini lebih awal."}
+          </p>
+          {!isVip && (
+            <Link
+              to="/upgrade"
+              className="mt-4 inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold text-black"
+              style={{ background: "linear-gradient(135deg,#FDE68A,#F59E0B,#B45309)" }}
+            >
+              <Crown className="h-4 w-4" /> Upgrade to VIP
+            </Link>
+          )}
+        </div>
+      );
+    }
     return (
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
         <div className="text-lg font-semibold">Video Offline</div>
         <p className="mt-1 text-sm text-muted-foreground">Try another server.</p>
       </div>
     );
+
   };
 
   const servers: { k: ServerKey; label: string; available: boolean }[] = [
