@@ -378,6 +378,38 @@ function WatchPage() {
         </div>
       )}
 
+      {/* VIP episode banner */}
+      {current?.vip_only && (
+        <div
+          className="mt-4 flex items-center gap-3 rounded-xl px-4 py-3 ring-1 ring-amber-400/40"
+          style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.18), rgba(253,230,138,0.08))" }}
+        >
+          <span
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-black shadow-lg shadow-amber-500/30"
+            style={{ background: "linear-gradient(135deg,#FDE68A,#F59E0B)" }}
+          >
+            <Crown className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-amber-300">Episode Eksklusif VIP</p>
+            <p className="text-xs text-amber-100/70">
+              {isVip
+                ? "Kamu member VIP — akses awal aktif, nikmati episode ini lebih dulu."
+                : "Member VIP bisa menonton lebih awal. Upgrade untuk akses instan tanpa menunggu."}
+            </p>
+          </div>
+          {!isVip && (
+            <Link
+              to="/upgrade"
+              className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold text-black"
+              style={{ background: "linear-gradient(135deg,#FDE68A,#F59E0B)" }}
+            >
+              Upgrade
+            </Link>
+          )}
+        </div>
+      )}
+
       {/* Expandable synopsis */}
       {synopsis && (
         <div className="mt-4">

@@ -77,6 +77,7 @@ function AnimeDetail() {
   const [bm, setBm] = useState(false);
   const [bmBusy, setBmBusy] = useState(false);
   const [epQuery, setEpQuery] = useState("");
+  const [descOpen, setDescOpen] = useState(false);
 
   useEffect(() => {
     getAnime(animeId).then(setAnime);
@@ -229,7 +230,23 @@ function AnimeDetail() {
             {anime.description && (
               <>
                 <h3 className="text-white font-bold text-xl mt-8">Sinopsis {anime.title}</h3>
-                <p className="text-slate-300 text-sm md:text-base mt-2 leading-relaxed">{anime.description}</p>
+                <p
+                  className={
+                    "text-slate-300 text-sm md:text-base mt-2 leading-relaxed whitespace-pre-wrap " +
+                    (descOpen || anime.description.length <= 220 ? "" : "line-clamp-4")
+                  }
+                >
+                  {anime.description}
+                </p>
+                {anime.description.length > 220 && (
+                  <button
+                    type="button"
+                    onClick={() => setDescOpen((v) => !v)}
+                    className="mt-1.5 text-sm font-semibold text-primary hover:text-primary/80"
+                  >
+                    {descOpen ? "Lebih sedikit" : "Lebih banyak"}
+                  </button>
+                )}
               </>
             )}
 
